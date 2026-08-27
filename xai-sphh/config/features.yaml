@@ -1,0 +1,69 @@
+# State feature configuration for FeatureExtractor.
+#
+# Each entry controls one feature column in the trace file (prefixed "feat_").
+# Set enabled: false to suppress a feature without recompiling.
+#
+# DOMAIN BARRIER: no feature here may encode problem-specific structure.
+# All features must be derivable solely from objective values, iteration
+# counters, heuristic indices and heuristic classes. See FeatureExtractor.java.
+
+features:
+  - name: heuristic_count
+    enabled: true
+    description: "Total number of low-level heuristics available in the current domain."
+
+  - name: iteration_index
+    enabled: true
+    description: "Zero-based iteration counter."
+
+  - name: budget_progress
+    enabled: true
+    description: "Normalised progress through the budget (0.0 at start, 1.0 at termination)."
+
+  - name: current_objective
+    enabled: true
+    description: "Objective value of the current incumbent solution."
+
+  - name: best_so_far
+    enabled: true
+    description: "Best objective value seen so far in the run."
+
+  - name: gap_to_best
+    enabled: true
+    description: "current_objective - best_so_far. Non-negative for minimisation."
+
+  - name: iterations_since_improvement
+    enabled: true
+    description: "Number of consecutive iterations without an improvement to best_so_far."
+
+  - name: recent_delta_0
+    enabled: true
+    description: "Objective delta from the most recent heuristic application (window position 0)."
+
+  - name: recent_delta_1
+    enabled: true
+    description: "Objective delta from two iterations ago (window position 1)."
+
+  - name: recent_delta_2
+    enabled: true
+    description: "Objective delta from three iterations ago (window position 2)."
+
+  - name: recent_delta_3
+    enabled: true
+    description: "Objective delta from four iterations ago (window position 3)."
+
+  - name: recent_delta_4
+    enabled: true
+    description: "Objective delta from five iterations ago (window position 4)."
+
+  - name: last_heuristic_0
+    enabled: true
+    description: "Index of the heuristic applied at the most recent step (history position 0)."
+
+  - name: last_heuristic_1
+    enabled: true
+    description: "Index of the heuristic applied two steps ago (history position 1)."
+
+  - name: last_heuristic_2
+    enabled: true
+    description: "Index of the heuristic applied three steps ago (history position 2)."

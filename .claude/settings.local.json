@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh && gradle wrapper --gradle-version 8.8 2>&1 | tail -5)",
+      "Bash(chmod +x /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/scripts/*.sh && echo \"Scripts marked executable\")",
+      "Bash(which java:*)",
+      "Bash(ls /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/gradle/wrapper/ && ls /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/*.gradle 2>/dev/null || echo \"No gradle files in parent\")",
+      "Bash(./gradlew tasks:*)",
+      "Bash(./gradlew compileJava 2>&1)",
+      "Bash(./gradlew test:*)",
+      "Bash(find /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/build/reports/tests -name \"*.xml\" 2>/dev/null | xargs grep -l \"testcase\" 2>/dev/null && cat /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/build/reports/tests/test/index.html 2>/dev/null | grep -E \"tests|failures|ignored\" | head -5 || echo \"No reports found\")",
+      "Bash(find /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/build -name \"TEST-*.xml\" 2>/dev/null | head -5 && ls /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/build/test-results/ 2>/dev/null || echo \"No test results\")",
+      "Bash(pip install:*)",
+      "Bash(cd /mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/python && python3 -m pytest tests/test_schema.py -v 2>&1)",
+      "Bash(pip3 install:*)",
+      "Bash(./gradlew build:*)"
+    ]
+  }
+}
