@@ -1,0 +1,36 @@
+# Baseline experiment configuration.
+#
+# Every field is required unless marked optional. Pass this file to Main.java:
+#   java -jar build/libs/xai-sphh-0.1.0-SNAPSHOT.jar config/experiments/baseline.yaml
+
+# Name of the hyper-heuristic technique to run.
+# Must match a key registered in ExperimentRunner.
+techniqueName: SimpleRandom
+
+# HyFlex domain name. Must match a key registered in DomainRegistry.
+# Available values: SAT, BinPacking, PersonnelScheduling, FlowShop, TSP, VRP
+domain: SAT
+
+# Zero-based index of the problem instance within the domain.
+# The valid range depends on the domain; see DomainRegistry.
+instanceIndex: 0
+
+# Random seed for reproducibility. Use a different seed per replicate.
+seed: 42
+
+# Budget type: "time" (milliseconds) or "iterations" (heuristic applications).
+budgetType: time
+
+# Budget value in the units specified by budgetType.
+budgetValue: 30000
+
+# Directory where trace CSV and run manifest JSON are written.
+outputDirectory: data/raw/traces
+
+# Technique-specific parameters (optional; ignored by SimpleRandom).
+# Add entries here when experimenting with ChoiceFunction or acceptance strategies.
+techniqueParameters:
+  # Example entries (not used by SimpleRandom):
+  # lateAcceptanceListLength: 500
+  # saInitialTemperature: 0.05
+  # saDecayRate: 0.99

@@ -1,0 +1,82 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'za.ac.up.cos790'
+version = '0.1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// HyFlex jars are vendored under lib/hyflex/. Place them there before compiling.
+// See README.md for details.
+def hyflexJars = fileTree(dir: 'lib/hyflex', include: '**/*.jar')
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Vendored HyFlex jars (placed manually under lib/hyflex/).
+    implementation hyflexJars
+
+    // YAML configuration parsing.
+    implementation 'org.yaml:snakeyaml:2.2'
+
+    // JSON serialisation for run manifests.
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1'
+
+    // Logging.
+    implementation 'org.slf4j:slf4j-api:2.0.13'
+    implementation 'org.slf4j:slf4j-simple:2.0.13'
+
+    // Testing.
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['java/src/main/java']
+            // When HyFlex jars are absent, include compile-time API stubs so that
+            // the project compiles and the non-HyFlex tests can run.
+            // When real jars are present, the stubs are excluded to avoid duplicate
+            // class definitions.
+            if (hyflexJars.isEmpty()) {
+                srcDirs += ['java/src/stubs/java']
+                logger.warn(
+                    '\n[xai-sphh] No HyFlex jars found in lib/hyflex/. ' +
+                    'Compiling with API stubs. Place the real jars there before running experiments.\n'
+                )
+            }
+        }
+        resources {
+            srcDirs = ['java/src/main/resources']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['java/src/test/java']
+        }
+    }
+}
+
+application {
+    mainClass = 'za.ac.up.cos790.Main'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'za.ac.up.cos790.Main'
+    }
+}

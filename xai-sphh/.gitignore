@@ -1,0 +1,55 @@
+# Gradle
+.gradle/
+build/
+java/build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Data (large files are not committed; only .gitkeep markers are tracked)
+data/raw/traces/*.parquet
+data/raw/traces/*.csv
+data/interim/*
+data/processed/*
+data/manifests/*.json
+!data/raw/traces/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/manifests/.gitkeep
+
+# Results
+results/tables/*
+results/figures/*
+results/logs/*
+!results/tables/.gitkeep
+!results/figures/.gitkeep
+!results/logs/.gitkeep
+
+# Report build artefacts
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.synctex.gz
+report/*.bbl
+report/*.blg
+report/figures/*.pdf
+!report/figures/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
