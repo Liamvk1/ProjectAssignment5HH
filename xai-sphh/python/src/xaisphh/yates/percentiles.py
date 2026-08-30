@@ -19,9 +19,7 @@ def percentile_rank(series: pd.Series) -> pd.Series:
     :param series: numeric series to rank
     :return: series of percentile ranks in [0.0, 1.0], same index as *series*
     """
-    raise NotImplementedError(
-        "TODO: implement percentile ranking using series.rank(pct=True)."
-    )
+    return series.rank(pct=True)
 
 
 def bucket_objectives(
@@ -29,13 +27,20 @@ def bucket_objectives(
     column: str = "objective_after",
     n_buckets: int = 10,
 ) -> pd.Series:
-    """Assign each objective value in *column* to one of *n_buckets* equal-width buckets.
+    """Assign each objective value in *column* to one of *n_buckets* equal-frequency buckets.
+
+    Uses quantile-based discretisation so each bucket contains approximately the
+    same number of observations regardless of the objective value distribution.
+    Duplicate bin edges are handled by collapsing ties into the same bucket.
 
     :param df: trace dataframe
     :param column: name of the column to bucket
-    :param n_buckets: number of equal-width percentile buckets
-    :return: integer series of bucket indices (0 to n_buckets - 1)
+    :param n_buckets: number of equal-frequency percentile buckets
+    :return: integer series of bucket indices (0 to n_buckets - 1), same index as *df*
     """
-    raise NotImplementedError(
-        "TODO: implement percentile bucketing using pd.qcut."
-    )
+    return pd.qcut(
+        df[column],
+        q=n_buckets,
+        labels=False,
+        duplicates="drop",
+    ).astype("Int64")

@@ -7,7 +7,7 @@ and of the column table in ``docs/trace-schema.md``. All three must agree.
 The column list and dtype map defined here are used by :mod:`xaisphh.io.loader` to
 validate loaded dataframes and by the test suite to assert cross-language consistency.
 
-Schema version: 1
+Schema version: 2
 """
 
 from __future__ import annotations
@@ -27,6 +27,9 @@ FIXED_COLUMNS: list[str] = [
     "heuristic_class",
     "depth_of_search",
     "intensity_of_mutation",
+    "target_index",
+    "source_index",
+    "second_parent_index",
     "objective_before",
     "objective_after",
     "delta",
@@ -34,10 +37,13 @@ FIXED_COLUMNS: list[str] = [
     "accepted",
     "best_so_far",
     "cpu_time_ms",
+    "pop_best",
+    "pop_mean",
+    "pop_diversity",
 ]
 
 #: Schema version. Increment when any column is added, removed, or renamed.
-SCHEMA_VERSION: int = 1
+SCHEMA_VERSION: int = 2
 
 # ---------------------------------------------------------------------------
 # Column dtype hints (used for efficient Parquet storage and validation)
@@ -45,19 +51,25 @@ SCHEMA_VERSION: int = 1
 
 #: Mapping from fixed column name to the pandas dtype to use after loading.
 FIXED_DTYPES: dict[str, str] = {
-    "run_id":               "string",
-    "iteration":            "int64",
-    "heuristic_id":         "int32",
-    "heuristic_class":      "string",
-    "depth_of_search":      "float64",
-    "intensity_of_mutation":"float64",
-    "objective_before":     "float64",
-    "objective_after":      "float64",
-    "delta":                "float64",
-    "log_return":           "float64",
-    "accepted":             "bool",
-    "best_so_far":          "float64",
-    "cpu_time_ms":          "float64",
+    "run_id":                "string",
+    "iteration":             "int64",
+    "heuristic_id":          "int32",
+    "heuristic_class":       "string",
+    "depth_of_search":       "float64",
+    "intensity_of_mutation": "float64",
+    "target_index":          "int32",
+    "source_index":          "int32",
+    "second_parent_index":   "int32",
+    "objective_before":      "float64",
+    "objective_after":       "float64",
+    "delta":                 "float64",
+    "log_return":            "float64",
+    "accepted":              "bool",
+    "best_so_far":           "float64",
+    "cpu_time_ms":           "float64",
+    "pop_best":              "float64",
+    "pop_mean":              "float64",
+    "pop_diversity":         "float64",
 }
 
 # ---------------------------------------------------------------------------

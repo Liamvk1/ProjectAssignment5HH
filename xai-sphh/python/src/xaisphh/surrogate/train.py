@@ -4,6 +4,11 @@ Surrogate model training.
 Trains a model to approximate the hyper-heuristic's implicit selection policy.
 The model is then explained using SHAP and LIME. Its faithfulness to the true
 policy determines the validity of the explanations.
+
+Supported model types (DD-05):
+  - ``gradient_boosting``  – scikit-learn GradientBoostingClassifier (default)
+  - ``random_forest``      – scikit-learn RandomForestClassifier
+  - ``logistic_regression`` – scikit-learn LogisticRegression with standard scaling
 """
 
 from __future__ import annotations
@@ -11,7 +16,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import joblib
 import pandas as pd
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 def train_surrogate(
@@ -34,13 +44,39 @@ def train_surrogate(
     :return: fitted scikit-learn estimator
     :raises ValueError: if *model_type* is not recognised
     """
-    # TODO (DD-05): Implement training. Choose the model family, fit on (X, y),
-    #               and return the fitted estimator. Add cross-validation here or
-    #               leave it to evaluate.py, depending on the design.
-    raise NotImplementedError(
-        "TODO (DD-05): implement surrogate model training. "
-        "Resolve design-decisions.md DD-05 (model family) first."
-    )
+    if model_type == "gradient_boosting":
+        model = GradientBoostingClassifier(
+            n_estimators=200,
+            max_depth=4,
+            learning_rate=0.05,
+            subsample=0.8,
+            random_state=random_state,
+        )
+    elif model_type == "random_forest":
+        model = RandomForestClassifier(
+            n_estimators=200,
+            max_depth=None,
+            min_samples_leaf=5,
+            random_state=random_state,
+            n_jobs=-1,
+        )
+    elif model_type == "logistic_regression":
+        model = Pipeline([
+            ("scaler", StandardScaler()),
+            ("clf", LogisticRegression(
+                max_iter=1000,
+                random_state=random_state,
+                C=1.0,
+            )),
+        ])
+    else:
+        raise ValueError(
+            f"Unknown model_type '{model_type}'. "
+            "Expected one of: 'gradient_boosting', 'random_forest', 'logistic_regression'."
+        )
+
+    model.fit(X, y)
+    return model
 
 
 def save_surrogate(model: Any, path: Path) -> None:
@@ -49,7 +85,9 @@ def save_surrogate(model: Any, path: Path) -> None:
     :param model: fitted scikit-learn estimator
     :param path: destination path (conventionally with a ``.joblib`` extension)
     """
-    raise NotImplementedError("TODO: implement model serialisation using joblib.dump.")
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, path)
 
 
 def load_surrogate(path: Path) -> Any:
@@ -58,4 +96,4 @@ def load_surrogate(path: Path) -> Any:
     :param path: path to the ``.joblib`` file written by :func:`save_surrogate`
     :return: fitted scikit-learn estimator
     """
-    raise NotImplementedError("TODO: implement model deserialisation using joblib.load.")
+    return joblib.load(Path(path))

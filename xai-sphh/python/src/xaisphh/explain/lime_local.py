@@ -11,7 +11,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from lime.lime_tabular import LimeTabularExplainer
+
+from xaisphh.figures.style import apply_style
 
 
 def explain_instance(
@@ -30,12 +35,28 @@ def explain_instance(
     :param num_samples: number of perturbed samples used by LIME
     :return: ``lime.explanation.Explanation`` object
     """
-    # TODO (DD-06): Implement local LIME explanation. Instantiate a
-    #               LimeTabularExplainer, call explain_instance, and return the result.
-    raise NotImplementedError(
-        "TODO (DD-06): implement LIME local explanation. "
-        "See design-decisions.md DD-06."
+    feature_names = list(X.columns)
+    X_array = X.to_numpy()
+
+    explainer = LimeTabularExplainer(
+        training_data=X_array,
+        feature_names=feature_names,
+        class_names=["rejected", "accepted"],
+        mode="classification",
+        discretize_continuous=True,
+        random_state=42,
     )
+
+    instance = X_array[instance_index]
+
+    explanation = explainer.explain_instance(
+        data_row=instance,
+        predict_fn=model.predict_proba,
+        num_features=num_features,
+        num_samples=num_samples,
+    )
+
+    return explanation
 
 
 def save_explanation_plot(explanation: Any, output_path: Path) -> None:
@@ -44,6 +65,11 @@ def save_explanation_plot(explanation: Any, output_path: Path) -> None:
     :param explanation: ``lime.explanation.Explanation`` object
     :param output_path: destination path for the saved figure
     """
-    raise NotImplementedError(
-        "TODO (DD-06): implement LIME explanation figure export."
-    )
+    apply_style()
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    fig = explanation.as_pyplot_figure()
+    fig.tight_layout()
+    fig.savefig(output_path)
+    plt.close("all")

@@ -1,0 +1,12 @@
+# Single-point, Choice Function selection, AILTA acceptance.
+
+techniqueName: SP-CF-AILTA
+domain: SAT
+instanceIndex: 0
+seed: 42
+budgetType: iterations
+budgetValue: 100000
+outputDirectory: data/raw/traces
+techniqueParameters:
+  # totalIterations used to calibrate AILTA decay (equals budgetValue for iteration budgets)
+  totalIterations: 100000

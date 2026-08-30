@@ -22,16 +22,49 @@ def load_trace(path: Path) -> pd.DataFrame:
     the declared dtypes, and returns the dataframe with dynamic columns
     (``feat_*`` and ``score_*``) appended after the fixed ones.
 
+    The ``log_return`` column may contain empty CSV fields (written by
+    ``CsvTraceWriter`` for non-positive objectives per DD-08); these are
+    loaded as ``NaN`` by pandas automatically.
+
     :param path: path to the CSV trace file produced by ``CsvTraceWriter``
     :return: validated dataframe with one row per iteration
     :raises FileNotFoundError: if *path* does not exist
     :raises ValueError: if required columns are missing or dtypes cannot be cast
     """
-    raise NotImplementedError(
-        "TODO: implement trace loading. "
-        "Use pd.read_csv, validate fixed columns against FIXED_COLUMNS, "
-        "cast dtypes using FIXED_DTYPES, and return the dataframe."
-    )
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Trace file not found: {path}")
+
+    df = pd.read_csv(path, dtype=str)  # load everything as str first for safe casting
+
+    # Validate that all fixed columns are present.
+    validate_schema(df)
+
+    # Cast fixed columns to their declared dtypes.
+    for col, dtype in FIXED_DTYPES.items():
+        if dtype == "bool":
+            # CSV stores True/False as strings; convert case-insensitively.
+            df[col] = df[col].str.strip().str.lower().map(
+                {"true": True, "false": False, "1": True, "0": False}
+            ).astype("boolean")
+        elif dtype in ("float64",):
+            # Empty fields (e.g. log_return for non-positive objectives) become NaN.
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype("float64")
+        elif dtype == "int64":
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype("int64")
+        elif dtype == "int32":
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype("int32")
+        elif dtype == "string":
+            df[col] = df[col].astype("string")
+
+    # Cast dynamic feature and score columns to float64.
+    dynamic_cols = [c for c in df.columns if c not in FIXED_COLUMNS]
+    for col in dynamic_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce").astype("float64")
+
+    # Reorder: fixed columns first, then dynamic columns in their original order.
+    ordered = FIXED_COLUMNS + [c for c in df.columns if c not in FIXED_COLUMNS]
+    return df[ordered]
 
 
 def load_traces(directory: Path, pattern: str = "*.csv") -> pd.DataFrame:
@@ -46,10 +79,18 @@ def load_traces(directory: Path, pattern: str = "*.csv") -> pd.DataFrame:
     :raises FileNotFoundError: if *directory* does not exist
     :raises ValueError: if no matching files are found
     """
-    raise NotImplementedError(
-        "TODO: implement multi-trace loading. "
-        "Glob the directory, call load_trace on each file, and pd.concat the results."
-    )
+    directory = Path(directory)
+    if not directory.exists():
+        raise FileNotFoundError(f"Trace directory not found: {directory}")
+
+    files = sorted(directory.glob(pattern))
+    if not files:
+        raise ValueError(
+            f"No files matching '{pattern}' found in {directory}."
+        )
+
+    frames = [load_trace(f) for f in files]
+    return pd.concat(frames, ignore_index=True)
 
 
 def validate_schema(df: pd.DataFrame) -> None:
@@ -58,7 +99,9 @@ def validate_schema(df: pd.DataFrame) -> None:
     :param df: dataframe to validate
     :raises ValueError: if any fixed column is absent
     """
-    raise NotImplementedError(
-        "TODO: implement schema validation. "
-        "Check that all names in FIXED_COLUMNS are present in df.columns."
-    )
+    missing = [col for col in FIXED_COLUMNS if col not in df.columns]
+    if missing:
+        raise ValueError(
+            f"Trace dataframe is missing required fixed columns: {missing}. "
+            f"Present columns: {list(df.columns)}"
+        )

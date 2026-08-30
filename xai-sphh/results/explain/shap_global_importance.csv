@@ -1,0 +1,17 @@
+feature,mean_abs_shap
+feat_progress,0.10660841058980222
+feat_iters_since_improve,0.0673402109384716
+feat_mean_logret_50,0.02084632255120282
+feat_last_h3,0.011744650971492573
+feat_last_h1,0.0068499890556523975
+feat_last_h2,0.006044479430201429
+feat_iters_since_accept,0.006017533955883913
+feat_improve_rate_50,0.003642369129478883
+feat_last_class3,0.002816109460591125
+feat_last_class1,0.0026881995240385466
+feat_last_class2,0.0017578548524274156
+feat_obj_norm,0.0008029185649132877
+feat_gap_to_best,0.0007458143215409163
+feat_llh_count,0.0
+feat_pop_diversity,0.0
+feat_pop_target_rank,0.0

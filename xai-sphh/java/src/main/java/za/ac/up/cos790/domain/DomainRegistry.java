@@ -60,34 +60,34 @@ public final class DomainRegistry {
     }
 
     private static Map<String, DomainEntry> buildRegistry() {
-        // TODO (DD-01): Instantiate the correct HyFlex domain classes once the jars are
-        //               in place. The lambda bodies below are placeholders that reference
-        //               the expected class names from the CHeSC distribution.
-        //               e.g. () -> new SAT(seed), () -> new BinPacking(seed), etc.
-        //               Instance index ranges follow the CHeSC 2011 specification.
+        // Domain constructors from the CHeSC 2011 distribution.
+        // All domains take a single long seed. Instance index ranges follow the
+        // CHeSC 2011 specification (10 instances per domain, indices 0-9).
+        // PersonnelScheduling is in a separate jar (chesc-ps.jar); all others
+        // are in chesc-fixed-no-ps.jar.
         return Map.of(
-                "SAT",                  new DomainEntry(
-                        () -> { throw new UnsupportedOperationException("TODO: instantiate SAT domain"); },
+                "SAT", new DomainEntry(
+                        () -> new SAT.SAT(System.nanoTime()),
                         List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
 
-                "BinPacking",           new DomainEntry(
-                        () -> { throw new UnsupportedOperationException("TODO: instantiate BinPacking domain"); },
+                "BinPacking", new DomainEntry(
+                        () -> new BinPacking.BinPacking(System.nanoTime()),
                         List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
 
-                "PersonnelScheduling",  new DomainEntry(
-                        () -> { throw new UnsupportedOperationException("TODO: instantiate PersonnelScheduling domain"); },
+                "FlowShop", new DomainEntry(
+                        () -> new FlowShop.FlowShop(System.nanoTime()),
                         List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
 
-                "FlowShop",             new DomainEntry(
-                        () -> { throw new UnsupportedOperationException("TODO: instantiate FlowShop domain"); },
+                "TSP", new DomainEntry(
+                        () -> new travelingSalesmanProblem.TSP(System.nanoTime()),
                         List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
 
-                "TSP",                  new DomainEntry(
-                        () -> { throw new UnsupportedOperationException("TODO: instantiate TSP domain"); },
+                "VRP", new DomainEntry(
+                        () -> new VRP.VRP(System.nanoTime()),
                         List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
 
-                "VRP",                  new DomainEntry(
-                        () -> { throw new UnsupportedOperationException("TODO: instantiate VRP domain"); },
+                "PersonnelScheduling", new DomainEntry(
+                        () -> new PersonnelScheduling.PersonnelScheduling(System.nanoTime()),
                         List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
         );
     }

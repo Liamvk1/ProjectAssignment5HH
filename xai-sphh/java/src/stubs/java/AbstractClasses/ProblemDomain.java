@@ -115,6 +115,15 @@ public abstract class ProblemDomain {
     public abstract void setIntensityOfMutation(double intensityOfMutation);
 
     /**
+     * Sets the number of solution memory slots available.
+     *
+     * <p>Must be called before any slot index higher than 1 is accessed.
+     *
+     * @param size the number of slots to allocate
+     */
+    public abstract void setMemorySize(int size);
+
+    /**
      * Returns the number of available problem instances.
      *
      * @return instance count

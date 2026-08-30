@@ -7,6 +7,7 @@ effectiveness of individual heuristics over time.
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
@@ -25,8 +26,12 @@ def compute_log_returns(df: pd.DataFrame) -> pd.Series:
     :return: series of log returns, aligned to *df*'s index
     :raises KeyError: if required columns are absent
     """
-    raise NotImplementedError(
-        "TODO: implement log return computation. "
-        "Use np.log(df['objective_after'] / df['objective_before']), "
-        "replacing non-positive values with NaN."
-    )
+    before = df["objective_before"]
+    after  = df["objective_after"]
+
+    # Mask rows where either value is non-positive to avoid log(0) or log(negative).
+    valid = (before > 0) & (after > 0)
+
+    log_ret = pd.Series(np.nan, index=df.index, dtype="float64")
+    log_ret[valid] = np.log(after[valid] / before[valid])
+    return log_ret

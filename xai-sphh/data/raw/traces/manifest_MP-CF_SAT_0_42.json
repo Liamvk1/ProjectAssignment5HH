@@ -1,0 +1,21 @@
+{
+  "runId" : "MP-CF_SAT_0_42",
+  "config" : {
+    "techniqueName" : "MP-CF",
+    "domain" : "SAT",
+    "instanceIndex" : 0,
+    "seed" : 42,
+    "budgetType" : "iterations",
+    "budgetValue" : 100000,
+    "outputDirectory" : "file:///mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/data/raw/traces/",
+    "techniqueParameters" : {
+      "populationSize" : "10"
+    }
+  },
+  "gitCommitHash" : "cb2b4cc723e72f127e66f34594c97b78f8b59a19",
+  "hyflexVersion" : "unknown",
+  "startTime" : "2026-08-30T14:21:42.691494437Z",
+  "endTime" : "2026-08-30T14:25:41.914488969Z",
+  "machineId" : "LAPTOP-ILBUTRQ7",
+  "finalObjective" : 37.0
+}
