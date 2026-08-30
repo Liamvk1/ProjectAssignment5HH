@@ -1,1 +1,152 @@
+## Task
 
+Implement the multi-point selection perturbative hyper-heuristic and the full instrumentation layer for a HyFlex-based research project. This covers population management, state feature extraction and trace logging. Selection strategies and acceptance criteria are supplied by interfaces that already exist in the repository and are not in scope here.
+
+Java 21, Gradle, HyFlex vendored under `lib/hyflex/`. UK English. Do not use dashes as sentence punctuation in code, comments or documentation.
+
+## Background you need in order to make correct choices
+
+A selection perturbative hyper-heuristic starts from a complete candidate solution and repeatedly chooses a low-level perturbative heuristic to apply to it. The research contribution is not the search itself but the explanation of it. Every decision the search makes is logged along with the search state that produced it, and those traces are analysed offline to explain which heuristics were effective, when, and under what conditions.
+
+This has one consequence that overrides ordinary engineering instinct. The trace is the product. Where a normal implementation would discard intermediate state, this one records it. Where a normal implementation would log only interesting events, this one logs every decision including the ones that failed.
+
+The hyper-heuristic must not observe anything problem specific. This is the domain barrier. The search may see only the number of low-level heuristics available, their class, and the objective values that result from applying them. The feature extractor is where this is most easily breached, so it carries an explicit comment saying so.
+
+## Decision 21: the population holds solutions
+
+The population is N complete candidate solutions. At each step the hyper-heuristic selects a low-level heuristic and applies it to one member. It does not hold heuristic sequences.
+
+This is what HyFlex is built for. `ProblemDomain.setMemorySize(n)` allocates the solution array and `applyHeuristic(h, source, target)` writes the result of applying heuristic `h` to the solution at index `source` into index `target`. Use that memory array as the population directly rather than maintaining a parallel structure.
+
+It also keeps the unit of explanation clean. One decision is one state, one heuristic, one target individual, one outcome. Nothing in the implementation should blur that boundary.
+
+## Decision 22: population configuration
+
+Steady state, not generational. One heuristic application per step, immediate replacement. Do not implement generational cycles.
+
+| Parameter | Value |
+| --- | --- |
+| Population size | 10, configurable |
+| Target selection | Binary tournament, two drawn at random, better one selected |
+| Second parent for crossover | Binary tournament, excluding the target index |
+| Replacement | Replace target if candidate is better than the target |
+| Elitism | The population best is never overwritten |
+| Diversity maintenance | None, but diversity is logged as a feature |
+
+The heuristic selector is the same `SelectionStrategy` implementation used by the single-point technique, and its internal state is shared globally across the population rather than held per individual. This is deliberate and must not be changed for convenience. The experiment compares single-point against multi-point search, so the selector has to be held constant. If each individual carried its own choice function state the comparison would be measuring two unrelated systems.
+
+Implement replacement so that the elitism guarantee is checked before the write, not repaired afterwards.
+
+## Decision 23: SSHH
+
+Not applicable. The population holds solutions, so there is no hidden Markov model, no emission matrices and no sequence termination rule. Do not scaffold for it.
+
+## Decision 24: budget
+
+In HyFlex `applyHeuristic` evaluates the resulting solution and returns its objective value, so one heuristic application is exactly one objective evaluation. Treat them as the same quantity and do not implement separate counters.
+
+Two budget modes, both behind the existing `BudgetPolicy` abstraction:
+
+- `APPLICATIONS`, terminating after a fixed count. Used for all runs that will be analysed. Default cap 100,000.
+- `WALL_CLOCK`, terminating after a fixed duration. Used for a smaller set of runs compared against published CHeSC results. Default ten minutes.
+
+Under both modes, record `cpu_time_ms` for every single application. This is not optional and it is not only for the timed runs. Recording it means a count-budgeted trace can be re-sliced by elapsed time during analysis, so the budget decision stays recoverable instead of being baked into the data. Measure it around the `applyHeuristic` call only, excluding logging and feature extraction overhead.
+
+## Decision 25: selection and acceptance in multi-point search
+
+In a population-based hyper-heuristic, move acceptance is not a separate component. It is expressed as the replacement rule. Reflect this in the code structure. The multi-point class should not take an `AcceptanceStrategy`. It should implement replacement directly and document in the class Javadoc that replacement is the acceptance mechanism, so that the correspondence with the single-point technique is explicit to a reader.
+
+The `accepted` column in the trace is populated from the replacement outcome, meaning true when the candidate replaced the target.
+
+## Decision 26: one record per heuristic application
+
+Every application produces exactly one trace record, whether or not it improved anything and whether or not it was accepted. Acceptance is a field on the record, not a separate event, so do not emit acceptance records.
+
+Do not add filtering that logs only improvements. The analysis needs the failures. A model trained only on applications that worked cannot learn which conditions predict that a heuristic will not work, and that is most of what the project sets out to explain. If a future contributor adds an "only log interesting steps" option it will silently destroy the dataset, so put a comment on the writer saying so.
+
+## Decision 27: trace fields
+
+Every field below, on every record.
+
+**Identity and decision**
+`run_id`, `iteration`, `heuristic_id`, `heuristic_class`, `depth_of_search`, `intensity_of_mutation`, `target_index`, `source_index`, `second_parent_index`
+
+**Outcome**
+`objective_before`, `objective_after`, `delta`, `log_return`, `accepted`, `best_so_far`, `cpu_time_ms`
+
+`log_return` is the natural logarithm of `objective_after` divided by `objective_before`. Guard against non-positive objectives and against division by zero, writing an empty field rather than infinity or NaN, and document the guard.
+
+**Population**
+`pop_best`, `pop_mean`, `pop_diversity`
+
+**State features**, each prefixed `feat_`, per decision 28.
+
+**Selection scores**, one column per heuristic, prefixed `score_`, per decision 29.
+
+`heuristic_class` is read from the HyFlex problem object at runtime through `getHeuristicsOfType`, giving mutation, ruin and recreate, local search or crossover. Do not hardcode a mapping table for any domain.
+
+## Decision 28: state features
+
+All features below are computed at decision time, before the heuristic is applied. None are problem specific.
+
+| Column | Definition |
+| --- | --- |
+| `feat_llh_count` | Number of low-level heuristics available in the domain |
+| `feat_progress` | Applications used divided by total budget |
+| `feat_obj_norm` | Current objective scaled by the running observed range |
+| `feat_gap_to_best` | Current objective minus best-so-far, scaled by the running range |
+| `feat_iters_since_improve` | Applications since best-so-far last improved |
+| `feat_improve_rate_50` | Fraction of the last 50 applications that improved their target |
+| `feat_mean_logret_50` | Mean log return over the last 50 applications |
+| `feat_last_h1`, `feat_last_h2`, `feat_last_h3` | Identifiers of the previous three heuristics applied |
+| `feat_last_class1`, `feat_last_class2`, `feat_last_class3` | Classes of those three |
+| `feat_iters_since_accept` | Applications since the last accepted move |
+| `feat_pop_diversity` | Standard deviation of population objectives divided by their mean |
+| `feat_pop_target_rank` | Rank of the target individual within the population, best is zero |
+
+Two implementation hazards, both of which will pass code review unless they are called out explicitly.
+
+**Normalisation must use running extrema only.** `feat_obj_norm` and `feat_gap_to_best` are scaled against the minimum and maximum objective observed *up to the current step*. They must never be scaled against the whole run's range. Using the full range leaks information from the future into a decision-time feature and will inflate the downstream model's accuracy for reasons that have nothing to do with the search. Maintain running minimum and maximum incrementally and put a comment at the point of use stating why.
+
+**Heuristic identifiers are categorical, not ordinal.** `feat_last_h*` and `feat_last_class*` are labels. Write them as integers in the CSV but record in `docs/trace-schema.md` that they are categorical, so the analysis side declares them as such and does not learn a false ordering between heuristic 3 and heuristic 7. Use a sentinel of -1 for the first steps where no predecessor exists, rather than 0, which is a valid heuristic index.
+
+Feature names are published as a static ordered list on `FeatureExtractor` so tests and the analysis code can assert against them.
+
+## Decision 29: full score vector
+
+At every step, before the selector commits, capture the score it assigned to every available heuristic, not only the winner. Write one column per heuristic, named `score_0` through `score_{n-1}`.
+
+This is what makes the selection decision explainable rather than only its outcome. Without the alternatives there is no way to ask why this heuristic rather than that one. The `SelectionStrategy` interface already exposes the score vector, so consume it rather than recomputing.
+
+For selectors with no meaningful per-heuristic score, such as simple random, write a uniform value across all columns rather than leaving them empty, so the schema stays fixed across techniques.
+
+## Decisions 30 and 31: volume and format
+
+Full traces for every analysed run, no sampling.
+
+Format is CSV written gzipped, as `.csv.gz`. Pandas reads that directly with no change on the analysis side. A row runs roughly 350 bytes uncompressed and a 100,000-application run is therefore about 35 MB raw, so gzip is what keeps a 300-run experiment near one gigabyte rather than ten.
+
+Requirements on the writer:
+- Buffered, flushed periodically rather than per record
+- Header written from the field names of the record type, so the schema cannot drift from the code
+- One file per run, named by `run_id`
+- A JSON manifest written alongside each trace holding config, seed, git commit, HyFlex version, start and end timestamps, machine identifier and final objective
+- `data/` is gitignored apart from the `.gitkeep` files
+
+## Tests
+
+- Elitism holds. Run 1,000 steps with a stub selector and assert the population best never worsens.
+- Feature extraction contains no leakage. Assert `feat_obj_norm` at step t is unchanged when steps after t are altered.
+- Sentinel handling. Assert `feat_last_h1` is -1 on the first record.
+- Score vector width equals the heuristic count for every domain.
+- Trace header matches the published feature name list and the schema document.
+- One record is emitted per application, including non-improving and rejected ones. Assert record count equals application count.
+- Log return guard produces an empty field rather than a non-finite value when the objective is zero.
+
+## Acceptance criteria
+
+1. A ten-instance smoke run completes on at least two HyFlex domains and produces a readable `.csv.gz` per run with a matching manifest.
+2. Record count equals application count exactly.
+3. `./gradlew test` passes.
+4. No hardcoded per-domain heuristic counts or class mappings anywhere in the source.
+5. The multi-point class does not reference `AcceptanceStrategy`.
