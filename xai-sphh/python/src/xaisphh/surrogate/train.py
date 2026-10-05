@@ -79,6 +79,23 @@ def train_surrogate(
     return model
 
 
+def drop_constant_features(
+    X: pd.DataFrame,
+) -> tuple[pd.DataFrame, list[str]]:
+    """Remove features that carry no information within the given dataset.
+
+    A feature is considered constant if it takes only one unique value across all
+    rows of *X*. Constant features inflate a training set without contributing
+    any discriminative signal, and may cause SHAP TreeExplainer to behave
+    unexpectedly.
+
+    :param X: feature matrix
+    :return: tuple of (filtered X, list of dropped column names)
+    """
+    constant_cols = [col for col in X.columns if X[col].nunique(dropna=False) <= 1]
+    return X.drop(columns=constant_cols), constant_cols
+
+
 def save_surrogate(model: Any, path: Path) -> None:
     """Serialise the fitted surrogate model to disk using joblib.
 

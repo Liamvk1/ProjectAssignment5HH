@@ -9,16 +9,24 @@ corresponds to a decision made across the three member implementation documents
 **File:** `selection/ChoiceFunction.java`, `selection/SimpleRandom.java`
 
 **Decision.** The Modified Choice Function (Cowling, Kendall and Soubeiga 2001;
-adaptive weighting after Tyasnurita, Ozcan and John 2017) is the primary research
+adaptive phi rule from Drake, Ozcan and Burke 2012) is the primary research
 vehicle. SimpleRandom is the baseline.
+
+**Phi update rule attribution.** The adaptive phi rule (snap to 0.99 on improvement,
+decay 0.01, floor 0.01) is taken from: Drake, J.H., Ozcan, E. and Burke, E.K. (2012),
+"An improved choice function heuristic selection for cross domain heuristic search",
+Parallel Problem Solving from Nature, PPSN XII, Lecture Notes in Computer Science
+vol. 7492, pp. 307-316, Springer, Berlin/Heidelberg. This replaces an earlier
+attribution to Tyasnurita, Ozcan and John (2017), which is incorrect.
 
 **Resolution of coordination conflict.** Member 4 DD-01 proposed a fixed-phi scheme
 (f1 and f2 using phi=0.5, additive alpha/beta/delta weights). Member 2 Q09 proposed
 the Modified Choice Function with adaptive phi (snap to 0.99 on improvement, decay
 0.01, floor 0.01). Member 2's rule was adopted because its constants are published and
-validated across all six CHeSC domains, whereas Member 4's additive update constants
-have no cited source. The dropped alternative is recorded here: fixed phi=0.5 with
-additive alpha/beta/delta updates, discarded because its constants cannot be attributed.
+validated across all six CHeSC domains (Drake et al. 2012), whereas Member 4's additive
+update constants have no cited source. The dropped alternative is recorded here: fixed
+phi=0.5 with additive alpha/beta/delta updates, discarded because its constants cannot
+be attributed.
 
 ## DD-02: Acceptance strategy parameters
 
@@ -65,6 +73,21 @@ the wrong reason.
 The CHeSC machine-factor scaling for `WALL_CLOCK` is noted from Member 4 DD-04 and
 should be applied when running benchmark comparisons.
 
+**Extension (Item 6): multi-point budget scaling.**
+Multi-point runs with population size p share the same total iteration budget as
+single-point runs by default (`budgetScaling: none`). This means each individual
+receives roughly 1/p times as many heuristic applications, which may disadvantage
+multi-point search on a per-individual basis.
+
+An alternative mode (`budgetScaling: per_member`) scales the iteration budget by p,
+so each individual receives the same expected number of applications as a single-point
+run. This mode is selectable via the `budgetScaling` YAML key.
+
+**Default:** `none` (unchanged from previous behaviour; all existing configs are
+unaffected). The `per_member` mode should be used when the research question is
+specifically about per-individual quality rather than total computational budget. The
+chosen mode is recorded in the run manifest for traceability.
+
 ## DD-05: Surrogate model family
 
 **File:** `python/src/xaisphh/surrogate/train.py`
@@ -93,7 +116,7 @@ All other f2 entries carry over unchanged until that pair recurs.
 
 ## DD-08: Log return for non-positive objectives
 
-**File:** `instrumentation/CsvTraceWriter.java`
+**File:** `instrumentation/CsvTraceWriter.java`, `python/src/xaisphh/yates/log_returns.py`
 
 **Decision.** Write an empty field, not NaN or infinity. An empty CSV field parses
 cleanly as a missing float in Pandas; the literal string "NaN" causes dtype inference
@@ -102,3 +125,16 @@ to produce an object column that then requires cleaning wherever it is read.
 This matches Decision 27 (Member 1+3) and Member 4 DD-08. The `log_return` field in
 `TraceRecord` stores NaN internally; the CSV writer translates it to an empty field
 on write.
+
+**Extension (Item 2): log-return clipping.**
+Near-zero objective values can cause log ratios to blow up (e.g., heuristic 6 showed
+a mean log return of +2.083 in baseline SAT runs where the incumbent objective
+approached zero). To suppress this artefact without discarding the row, valid log
+returns are clipped to the range [-10, +10] before summary statistics are computed.
+
+**Default clip range:** [-10, +10]. This is configurable via `--clip-low` and
+`--clip-high` in the `yates` pipeline stage. The clip is applied only to the Python
+analysis; the Java trace writer still records the raw value (or empty for non-positive
+objectives). A diagnostic warning is emitted for any heuristic whose mean log return
+differs from its median by a factor exceeding 2.0 (configurable via
+`--divergence-factor`).

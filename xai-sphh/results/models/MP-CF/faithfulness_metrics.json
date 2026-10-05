@@ -1,0 +1,16 @@
+{
+  "accuracy": 0.98988,
+  "accuracy_std": 0.000428485705712586,
+  "roc_auc": 0.9555524614845394,
+  "roc_auc_std": 0.006351309252868633,
+  "f1": 0.5550164611263717,
+  "f1_std": 0.014833385012320639,
+  "majority_baseline_accuracy": 0.98656,
+  "technique": "MP-CF",
+  "n_samples": 100000,
+  "n_features_used": 15,
+  "dropped_features": [
+    "feat_llh_count"
+  ],
+  "mode": "per_technique_surrogate"
+}

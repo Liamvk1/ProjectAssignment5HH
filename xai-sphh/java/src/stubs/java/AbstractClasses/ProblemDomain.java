@@ -26,6 +26,16 @@ public abstract class ProblemDomain {
         CROSSOVER
     }
 
+    /**
+     * Sentinel constant present only in the stub, not in the real HyFlex jars.
+     *
+     * <p>{@link za.ac.up.cos790.domain.DomainRegistry#isStub(String)} detects this field
+     * via reflection to determine whether the project is running against stub classes.
+     * When the real CHeSC jars are on the classpath, this field does not exist and
+     * {@code isStub} returns {@code false}.
+     */
+    public static final boolean HYFLEX_STUB = true;
+
     /** Constructs the stub. */
     protected ProblemDomain() {}
 

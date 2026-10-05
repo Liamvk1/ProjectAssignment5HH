@@ -1,0 +1,18 @@
+{
+  "accuracy": 0.71738,
+  "accuracy_std": 7.483314773547058e-05,
+  "roc_auc": 0.5174546680301075,
+  "roc_auc_std": 0.003547033144519839,
+  "f1": 0.8354334543326283,
+  "f1_std": 4.907124810124112e-05,
+  "majority_baseline_accuracy": 0.71761,
+  "technique": "SP-SR-LA",
+  "n_samples": 100000,
+  "n_features_used": 13,
+  "dropped_features": [
+    "feat_llh_count",
+    "feat_pop_diversity",
+    "feat_pop_target_rank"
+  ],
+  "mode": "per_technique_surrogate"
+}

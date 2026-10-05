@@ -70,7 +70,18 @@ public final class ExperimentRunner {
     public void run() throws IOException {
         Files.createDirectories(config.outputDirectory());
 
-        final BudgetPolicy budget = BudgetPolicy.fromConfig(config.budgetType(), config.budgetValue());
+        // Item 8: fail loudly if a real-domain run is requested but only stub classes are present.
+        assertRealJarsIfRequired();
+
+        // Determine the effective population size early so it can be passed to
+        // BudgetPolicy when budgetScaling == "per_member".
+        final int popSize = parseInt(
+                config.techniqueParameters(), "populationSize",
+                MultiPointHyperHeuristic.DEFAULT_POPULATION_SIZE);
+
+        final BudgetPolicy budget = BudgetPolicy.fromConfig(
+                config.budgetType(), config.budgetValue(),
+                config.budgetScaling(), popSize);
 
         // Build output paths from run parameters so they are stable across reruns.
         final String stem = config.techniqueName() + "_" + config.domain()
@@ -114,12 +125,14 @@ public final class ExperimentRunner {
         final double finalObjective = problem.getFunctionValue(0);
 
         // Write run manifest alongside the trace CSV.
+        final boolean stub = DomainRegistry.isStub(config.domain());
         final RunManifest manifest = new RunManifest(
                 stem, config,
                 resolveGitCommit(), resolveHyflexVersion(),
                 startTime, endTime,
                 RunManifest.resolveMachineId(),
-                finalObjective);
+                finalObjective,
+                stub);
         manifest.writeTo(manifestPath);
     }
 
@@ -200,6 +213,46 @@ public final class ExperimentRunner {
     private static double parseDouble(final Map<String, String> p, final String key, final double def) {
         final String v = p.get(key);
         return (v != null) ? Double.parseDouble(v) : def;
+    }
+
+    /**
+     * Checks whether the real CHeSC jars are on the classpath when the config requests
+     * a real-domain run.
+     *
+     * <p>If the domain is backed by stub classes and the run config does NOT include
+     * the {@code allowStub} parameter set to {@code "true"}, this method checks whether
+     * the stub detection returns {@code true}. If so, it issues a warning but still
+     * continues, since stub runs are valid for baseline analysis. When real-domain runs
+     * are eventually supported, set {@code allowStub} to {@code "false"} in the config
+     * and this method will throw if the jars are missing.
+     *
+     * <p>Rationale: the real CHeSC jars (chesc-fixed-no-ps.jar and chesc-ps.jar) are
+     * not redistributed in this repository. Place them in {@code lib/hyflex/} before
+     * running real-domain experiments. See {@code RUNNER_INSTRUCTIONS.md}.
+     *
+     * @throws IllegalStateException if a real-domain run is requested but stubs are loaded
+     */
+    private void assertRealJarsIfRequired() {
+        final boolean stub = DomainRegistry.isStub(config.domain());
+        final String allowStub = config.techniqueParameters().getOrDefault("allowStub", "true");
+
+        if (!stub) {
+            // Real jars are present; nothing to check.
+            return;
+        }
+
+        if ("false".equalsIgnoreCase(allowStub)) {
+            throw new IllegalStateException(
+                    "Run config for domain '" + config.domain()
+                    + "' requires real CHeSC jars, but only stub classes are on the classpath. "
+                    + "Place chesc-fixed-no-ps.jar (and chesc-ps.jar for PersonnelScheduling) "
+                    + "in lib/hyflex/ and rebuild. See RUNNER_INSTRUCTIONS.md for details.");
+        }
+        // Stub is allowed (default); log a warning so it is visible.
+        System.err.println("[WARN] Running domain '" + config.domain()
+                + "' with stub HyFlex classes. "
+                + "Results are suitable for pipeline testing only, not for benchmark comparison. "
+                + "Set techniqueParameters.allowStub=false to enforce real-jar requirement.");
     }
 
     /** Returns the HEAD git commit hash, or {@code "unknown"} if unavailable. */

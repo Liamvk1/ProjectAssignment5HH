@@ -46,6 +46,11 @@ public final class ConfigLoader {
         final long   budgetValue    = ((Number) require(raw, "budgetValue", Number.class)).longValue();
         final Path   outputDir      = Path.of(require(raw, "outputDirectory", String.class));
 
+        // budgetScaling is optional; default is "none" (see RunConfig compact constructor).
+        final String budgetScaling = raw.containsKey("budgetScaling")
+                ? String.valueOf(raw.get("budgetScaling"))
+                : "none";
+
         final Map<String, String> params = new HashMap<>();
         final Object rawParams = raw.get("techniqueParameters");
         if (rawParams instanceof Map<?, ?> m) {
@@ -53,7 +58,7 @@ public final class ConfigLoader {
         }
 
         return new RunConfig(techniqueName, domain, instanceIndex, seed,
-                budgetType, budgetValue, outputDir, params);
+                budgetType, budgetValue, budgetScaling, outputDir, params);
     }
 
     private static <T> T require(final Map<String, Object> map, final String key, final Class<T> type) {
