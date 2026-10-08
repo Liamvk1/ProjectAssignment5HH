@@ -1,0 +1,695 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=25mm]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage{array}
+
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black}
+
+\title{\textbf{Project Assessment 4}\\
+Project 5: XAI for Cross-Domain Selection Perturbative Hyper-Heuristics}
+\author{Dreas Vermaak u22497618, Liam van Kasterop u22539761,\\
+Katleho Moeletsi 19061430, Emmanuel Ramphabana u25721373\\
+Department of Computer Science}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+Assessment 4 completes the work planned in Section 5 of Assessment 3. The
+baseline run on a single domain with a pooled surrogate established that the
+measurement apparatus works; the seven items listed in that conclusion identified
+what had to change before the results could carry scientific weight. This report
+documents the outcome of those changes.
+
+The core research question remains: \emph{what does a hyper-heuristic implicitly
+learn to respond to, and does this differ between selection strategies, acceptance
+strategies, and search topologies?} Assessment 3 could not answer it because the
+pooled surrogate confounded search topology with acceptance behaviour, the
+objective-stability issue in the log return statistic inflated one heuristic's
+apparent utility by a factor of roughly thirty, LIME had been applied at only two
+decision points, and the entire run used stub problem domains rather than the real
+CHeSC HyFlex benchmark. All four of those deficiencies are corrected here.
+
+The six changes made for Assessment 4 are: (1) real CHeSC HyFlex jar files used
+throughout; (2) per-technique surrogates trained and SHAP profiles compared across
+them; (3) the experimental matrix expanded to four techniques across six domains
+on a single instance and seed as a stepping stone toward the full planned matrix;
+(4) multi-point budget scaling settled; (5) log return statistic stabilised and
+medians and counts reported alongside means; (6) LIME applied over a grid of fifty
+decision points spanning the full budget.
+
+\section{Implementation Changes from Assessment 3}
+
+\subsection{Real HyFlex domains}
+
+Assessment 3 noted that all runs executed against stub problem domains because the
+CHeSC HyFlex jar files were not yet available. That limitation is resolved. The jar
+files \texttt{chesc-fixed-no-ps.jar} and \texttt{chesc-ps.jar} are present under
+\texttt{lib/hyflex/} and all 24 runs in this assessment report \texttt{stub: false}
+in their manifests. Objective values are now directly comparable to published CHeSC
+results.
+
+\subsection{Per-technique surrogates}
+
+Assessment 3 trained a single surrogate on the pooled output of all four techniques.
+Section 4.2 of Assessment 3 showed that the dominant SHAP attributions (population
+rank and diversity) were artefacts of the pooled dataset: in a single-point run
+those features take sentinel value $-1$, so a tree model splits on them before it
+considers anything else. The surrogate was modelling topology membership, not
+acceptance behaviour.
+
+The correction is to train one gradient-boosting surrogate per technique on that
+technique's decisions only. SHAP profiles are then compared across techniques. A
+pooled surrogate is retained as a secondary output for topology classification but
+is not used for the primary explanation.
+
+\subsection{Log return stabilisation}
+
+Assessment 3, Section 4.6, identified that the log return statistic is unstable
+when the denominator approaches zero, causing one heuristic to appear thirty times
+more useful than the next best. The fix is a symmetric clip applied after the log
+transform: $\log(o_\text{after}/o_\text{before})$ is clamped to $[-10, +10]$.
+Median and interquartile range are reported alongside the mean, and application
+counts are shown so that a large mean on few applications is distinguishable from
+a genuinely useful heuristic.
+
+\subsection{LIME grid over the full budget}
+
+Assessment 3 applied LIME at two hand-picked decision points. The phase transition
+hypothesis (exploratory acceptance early, selective acceptance late) rested on those
+two points alone. The new pipeline runs LIME at fifty evenly-spaced quantile
+positions across the budget, records every condition produced at each point, and
+aggregates condition frequency by progress band. Phase structure is validated against
+acceptance rate measured directly from the traces, which requires no model at all.
+
+\subsection{Multi-point budget}
+
+Assessment 3, Section 4.7, noted that under an equal iteration budget a population
+of ten receives roughly a tenth of the perturbations per member that a single-point
+run applies to its incumbent, making MP-CF structurally disadvantaged on final
+solution quality. The implementation supports a \texttt{budgetScaling: per\_member}
+option that multiplies the base iteration budget by the population size before
+running, giving each member a comparable perturbation count. Runs in this assessment
+use the unscaled budget to maintain consistency with Assessment 3 and the planned
+full matrix; the scaling option is available and the comparison is discussed in
+Section 4.
+
+\subsection{Interactive experiment runner}
+
+A Bash script (\texttt{scripts/run\_domain.sh}) provides an interactive menu for
+selecting domain, technique, budget and seed, running the full set, and optionally
+invoking the Python analysis pipeline on completion. The script was used to produce
+all runs reported here.
+
+\section{Experimental Protocol}
+
+\subsection{Domains and techniques}
+
+All six CHeSC HyFlex domains were run: Boolean Satisfiability (SAT), 1-D Bin
+Packing (BinPacking), Permutation Flow Shop Scheduling (FlowShop), Travelling
+Salesman Problem (TSP), Vehicle Routing Problem (VRP), and Personnel Scheduling
+(PersonnelScheduling). The four techniques are the same as Assessment 3 and are
+listed in Table~\ref{tab:techniques}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+Technique & Topology & Selection & Acceptance \\
+\midrule
+SP-SR-LA    & Single-point   & Simple Random       & Late Acceptance, $L=50$ \\
+SP-CF-LA    & Single-point   & Choice Function     & Late Acceptance, $L=50$ \\
+SP-CF-AILTA & Single-point   & Choice Function     & AILTA \\
+MP-CF       & Multi-point (pop.\ 10) & Choice Function & Population replacement \\
+\bottomrule
+\end{tabular}
+\caption{The four techniques, unchanged from Assessment 3.}
+\label{tab:techniques}
+\end{table}
+
+All runs: instance 0, seed 42, 100{,}000 iterations (iteration-based budget).
+This gives a single-seed, single-instance cross-domain snapshot. Statistical
+replication across seeds is planned for the full matrix but not yet executed;
+no significance claims are made in this report.
+
+\subsection{Dataset}
+
+The 24 runs produce approximately 2{,}500{,}000 recorded decisions. Each decision
+is one row in the feature matrix, labelled with the technique, domain, and outcome.
+Table~\ref{tab:wallclock} records wall-clock time per domain; PersonnelScheduling
+is an order of magnitude slower than the other domains and dominated the total
+run time.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Domain & SP-CF-LA & SP-CF-AILTA & SP-SR-LA & MP-CF \\
+\midrule
+SAT                 & 239 s & 227 s & 234 s & 242 s \\
+BinPacking          & 199 s & 205 s & 216 s & 713 s \\
+FlowShop            &  52 s &  73 s &  52 s &  57 s \\
+TSP                 &  14 s &  13 s &   9 s &  21 s \\
+VRP                 &  14 s &  26 s &  12 s &  23 s \\
+PersonnelScheduling & 20{,}851 s & 22{,}398 s & 20{,}572 s & 28{,}042 s \\
+\bottomrule
+\end{tabular}
+\caption{Wall-clock time per run. Iteration count is 100,000 in all cases. The
+per-iteration overhead differs significantly between domains.}
+\label{tab:wallclock}
+\end{table}
+
+\section{Results}
+
+\subsection{Final objective values}
+
+Table~\ref{tab:objectives} reports the final objective value at the end of each run.
+All domains are minimisation problems; lower values are better. The best result per
+domain is shown in bold.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Domain & SP-CF-LA & SP-CF-AILTA & SP-SR-LA & MP-CF \\
+\midrule
+SAT                 & 11.0       & \textbf{2.0}    & 16.0       & 49.0 \\
+BinPacking          & 0.01227    & 0.01728         & \textbf{0.01090}    & 0.01111 \\
+FlowShop            & 6350.0     & \textbf{6297.0} & 6346.0     & 6388.0 \\
+TSP                 & 52798.9    & 49283.8         & 49737.3    & \textbf{49193.3} \\
+VRP                 & 6165.5     & 5197.6          & 6147.4     & \textbf{5176.1} \\
+PersonnelScheduling & 3298.0     & \textbf{3282.0} & 3324.0     & 3335.0 \\
+\bottomrule
+\end{tabular}
+\caption{Final objective values across all 24 runs. All domains are minimisation
+problems. Instance 0, seed 42, 100,000 iterations.}
+\label{tab:objectives}
+\end{table}
+
+\subsection{Surrogate faithfulness}
+
+One surrogate is trained per technique on that technique's decisions only. Faithfulness
+is measured by five-fold stratified cross-validation. Table~\ref{tab:faithfulness}
+reports accuracy and ROC-AUC for each technique surrogate alongside the majority-class
+baseline for that technique's dataset.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Technique & Accuracy & ROC-AUC & Majority baseline \\
+\midrule
+SP-CF-LA    & $89.34\% \pm 0.11\%$ & $96.77\% \pm 0.08\%$ & $71.54\%$ \\
+SP-CF-AILTA & $97.43\% \pm 0.09\%$ & $94.96\% \pm 0.22\%$ & $95.32\%$ \\
+SP-SR-LA    & $71.74\% \pm 0.01\%$ & $51.75\% \pm 0.35\%$ & $71.76\%$ \\
+MP-CF       & $99.53\% \pm 0.02\%$ & $96.25\% \pm 0.26\%$ & $99.38\%$ \\
+\bottomrule
+\end{tabular}
+\caption{Per-technique surrogate faithfulness (five-fold stratified CV). All single-point
+technique surrogates drop the three population features (constant at sentinel $-1$), leaving
+13 features. The SP-SR-LA ROC-AUC of 51.75\% is effectively random and requires analysis
+(Section~4.4). The high majority-class baselines for SP-CF-AILTA and MP-CF reflect that
+both methods accept rarely: AILTA tightens its threshold aggressively, and multi-point
+replacement events are infrequent by construction.}
+\label{tab:faithfulness}
+\end{table}
+
+\subsection{Cross-technique SHAP comparison}
+
+Table~\ref{tab:shap} shows the mean absolute SHAP value for each feature in each
+per-technique surrogate, ranked by average importance across techniques. Features
+with zero importance in all four surrogates are omitted.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Feature & SP-CF-LA & SP-CF-AILTA & SP-SR-LA & MP-CF \\
+\midrule
+feat\_improve\_rate\_50    & 1.476 & 1.305 & 1.281 &  0.109 \\
+feat\_gap\_to\_best        & 0.317 & 10.859 & 0.509 & 48.081 \\
+feat\_mean\_logret\_50     & 0.686 & 0.438 & 0.035 &  0.167 \\
+feat\_progress             & 0.208 & 0.256 & 0.234 &  0.249 \\
+feat\_iters\_since\_improve & 0.155 & 0.317 & 0.212 & 45.603 \\
+feat\_last\_h1             & 0.389 & 0.275 & 0.061 &  0.016 \\
+feat\_last\_h2             & 0.212 & 0.930 & 0.029 &  0.031 \\
+feat\_last\_h3             & 0.433 & 0.737 & 0.077 &  0.062 \\
+feat\_obj\_norm            & 0.047 & 0.021 & 0.010 &  0.636 \\
+feat\_iters\_since\_accept  & 0.000 & 0.000 & 0.000 & 86.231 \\
+feat\_llh\_count           & 1.740 & 11.219 & 1.695 &  1.137 \\
+feat\_last\_class1         & 0.110 & 0.177 & 0.034 &  0.014 \\
+feat\_last\_class2         & 0.102 & 0.020 & 0.042 &  0.007 \\
+feat\_last\_class3         & 0.051 & 0.822 & 0.033 &  0.004 \\
+feat\_pop\_diversity       & --- & --- & --- & 6.943 \\
+feat\_pop\_target\_rank    & --- & --- & --- & 0.361 \\
+\bottomrule
+\end{tabular}
+\caption{Mean absolute SHAP value per feature per technique. Population features
+(---) are dropped for all single-point techniques where they take sentinel value
+$-1$. MP-CF values are on a substantially different scale due to the extreme class
+imbalance (99.4\% rejection rate); the ordinal ranking of features within each
+technique is more comparable than cross-technique magnitudes.}
+\label{tab:shap}
+\end{table}
+
+\subsection{Log-return statistics}
+
+Table~\ref{tab:logreturns} reports per-heuristic log-return statistics pooled across
+all 24 runs. The clipped log return ($[-10,+10]$) is used throughout. Median is
+reported alongside mean as the primary location statistic; count indicates how many
+applications each heuristic received.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{rrrrrrl}
+\toprule
+Heuristic & Count & Mean & Median & IQR & Trim.\ mean & Note \\
+\midrule
+ 0 & 202{,}150 & $+0.051$ & $0.000$ & $0.069$ & $+0.030$ & \\
+ 1 & 201{,}309 & $+0.014$ & $0.000$ & $0.013$ & $+0.005$ & \\
+ 2 & 185{,}324 & $+0.129$ & $0.000$ & $0.001$ & $+0.005$ & \\
+ 3 & 177{,}048 & $+0.085$ & $0.000$ & $0.034$ & $+0.013$ & \\
+ 4 & 216{,}726 & $+0.039$ & $0.000$ & $0.042$ & $+0.017$ & \\
+ 5 & 202{,}359 & $+0.059$ & $+0.003$ & $0.091$ & $+0.040$ & skew \\
+ 6 & 245{,}336 & $+0.581$ & $0.000$ & $1.115$ & $+0.370$ & skew \\
+ 7 & 280{,}936 & $+0.373$ & $0.000$ & $0.000$ & $+0.059$ & \\
+ 8 & 231{,}494 & $+0.026$ & $0.000$ & $0.000$ & $+0.000$ & \\
+ 9 & 184{,}278 & $+0.098$ & $0.000$ & $0.000$ & $+0.000$ & \\
+10 & 155{,}517 & $+0.058$ & $0.000$ & $0.000$ & $+0.000$ & \\
+11 &  93{,}240 & $+0.763$ & $0.000$ & $1.962$ & $+0.605$ & skew \\
+12 &  67{,}270 & $+0.001$ & $0.000$ & $0.000$ & $+0.000$ & \\
+13 &  28{,}484 & $+0.000$ & $0.000$ & $0.000$ & $+0.000$ & \\
+14 &  28{,}529 & $+0.000$ & $0.000$ & $0.000$ & $+0.000$ & \\
+\bottomrule
+\end{tabular}
+\caption{Per-heuristic log-return statistics pooled across all 25 runs and all
+six domains. Log returns clipped to $[-10,+10]$. Heuristic IDs are
+domain-relative indices; the same ID in different domains refers to different
+operators. Heuristics 5, 6, and 11 are flagged for distribution skew. Large mean
+with zero median indicates a long right tail on a small fraction of applications.}
+\label{tab:logreturns}
+\end{table}
+
+\subsection{Footrule distances}
+
+Spearman footrule distance measures how far the ranking of heuristics by mean log
+return shifts between the early phase (first 25\% of budget) and the late phase
+(last 25\% of budget). Table~\ref{tab:footrule} reports the distance per
+technique-domain run. The maximum attainable distance scales with the number of
+heuristics: a domain with $n$ heuristics has a maximum of $\lfloor n^2/2 \rfloor$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Domain & SP-CF-LA & SP-CF-AILTA & SP-SR-LA & MP-CF \\
+\midrule
+BinPacking           &  5 &  4 & 12 & 12 \\
+FlowShop             & 22 & 20 & 16 & 19 \\
+PersonnelScheduling  & 17 & 17 & 20 & 14 \\
+SAT                  & 22 & 14 & 16 & 12 \\
+TSP                  & 14 &  8 & 16 & 16 \\
+VRP                  & 24 & 18 & 12 & 32 \\
+\midrule
+Mean                 & 17.3 & 13.5 & 15.3 & 17.5 \\
+\bottomrule
+\end{tabular}
+\caption{Spearman footrule distances between early-phase (first 25\%) and
+late-phase (last 25\%) heuristic utility rankings. A distance of 0 means
+rankings are identical throughout; higher values mean greater rank instability.
+The maximum attainable distance depends on the number of heuristics per domain.}
+\label{tab:footrule}
+\end{table}
+
+\subsection{LIME condition frequency}
+
+LIME was applied at 50 evenly-spaced quantile positions across the budget for each
+per-technique surrogate. Condition records were produced for MP-CF; for the three
+single-point techniques the LIME grid produced empty condition sets. This is
+consistent with the class-imbalance problem in the single-point surrogates: when
+the acceptance rate is below 30\%, LIME's local perturbation neighbourhood is
+dominated by rejection predictions and the local linear model has near-zero weights.
+Table~\ref{tab:lime} reports the top-5 conditions for MP-CF.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Condition (MP-CF) & Count & Mean weight & Positive fraction \\
+\midrule
+feat\_gap\_to\_best $\leq 0.00$    & 25 & $-0.205$ & 0.00 \\
+feat\_obj\_norm $\leq 0.00$        & 25 & $-0.114$ & 0.00 \\
+feat\_improve\_rate\_50 $\leq 0.00$ & 22 & $-0.029$ & 0.13 \\
+feat\_pop\_target\_rank $\leq 0.00$ & 22 & $+0.033$ & 1.00 \\
+feat\_pop\_diversity $\leq 0.00$   & 21 & $-0.123$ & 0.00 \\
+\bottomrule
+\end{tabular}
+\caption{Top-5 LIME conditions by total frequency across the 50-point budget
+grid for MP-CF. Count is the number of grid points (out of 50) at which the
+condition appeared. Positive fraction is the proportion of those appearances
+where the condition pushed toward acceptance.}
+\label{tab:lime}
+\end{table}
+
+\section{Analysis}
+
+\subsection{Cross-domain performance patterns}
+
+Table~\ref{tab:objectives} reveals that no single technique dominates across all six
+domains. SP-CF-AILTA wins on three domains (SAT, FlowShop, PersonnelScheduling),
+MP-CF wins on two (TSP and VRP), and the random baseline SP-SR-LA wins on one
+(BinPacking). SP-CF-LA, which pairs the Choice Function with the simpler acceptance
+criterion, does not lead on any domain and finishes last on TSP.
+
+The AILTA advantage on SAT is large: 2.0 against 16.0 for the random baseline and
+11.0 for SP-CF-LA. On FlowShop and PersonnelScheduling the margins are narrower
+(6297 vs 6346 and 3282 vs 3298 respectively). SAT minimises unsatisfied clauses
+toward a target of zero, so acceptance strategy matters greatly near the end of a
+run when the objective can be very close to zero. AILTA loosens its threshold when
+the search stagnates, which is precisely the condition needed to escape a local
+optimum with objective value 3 or 4.
+
+The random baseline winning BinPacking is notable. BinPacking in HyFlex is a
+continuous-objective problem and the observed values are very close together
+(0.011--0.017). The differences may be within noise at a single seed; significance
+claims require replication. It does suggest that the Choice Function's learning is
+not helping on this domain at this instance and seed.
+
+\subsection{MP-CF budget fairness}
+
+MP-CF performs worst on SAT (49.0 vs 2.0 for AILTA) but best on TSP and VRP.
+Under an equal iteration budget of 100,000 a population of ten applies roughly
+10,000 perturbations to each member, versus 100,000 for a single-point run. This
+is the budget-fairness problem identified in Assessment 3.
+
+The TSP and VRP results suggest that the population approach provides a benefit
+\emph{despite} the disadvantage, not because of it: population diversity helps
+in these domains more than the reduced per-member perturbation count hurts. On SAT
+the opposite is true: convergence to a near-zero objective requires sustained local
+search on one solution, and distributing the budget across ten members is inefficient.
+
+A budget-scaled MP-CF run (using \texttt{budgetScaling: per\_member}, which
+multiplies the budget by the population size before running) would apply 1,000,000
+iterations total, making the comparison fairer in terms of perturbation count.
+This is available in the implementation but not executed in this assessment due to
+wall-clock cost; it is planned for the full matrix.
+
+\subsection{Surrogate failure for Simple Random reveals a CF learning effect}
+
+The most striking result in Table~\ref{tab:faithfulness} is the SP-SR-LA ROC-AUC
+of 51.75\%, which is statistically indistinguishable from random. SP-CF-LA, which
+uses the \emph{same} Late Acceptance criterion, achieves 96.77\% ROC-AUC on the
+same acceptance target. The only difference between the two techniques is the
+selection strategy.
+
+The explanation is structural. Late Acceptance accepts a candidate if its objective
+is at least as good as the objective recorded $L = 50$ iterations ago. That historical
+comparison value is not a feature in the surrogate's input: the 16 state features
+capture recent trends (last 50 moves), stagnation counts, and heuristic history, but
+not the specific objective seen exactly $L$ steps ago. The surrogate must infer the
+LA threshold from proxies.
+
+Under the Choice Function, selection is adaptive: productive heuristics are applied
+more often. This creates structure in the search trajectory that is visible in the
+features --- sustained high \texttt{feat\_improve\_rate\_50}, characteristic
+\texttt{feat\_last\_h1} patterns, correlations between quality features and subsequent
+acceptance --- and the surrogate can exploit that structure. Under Simple Random,
+heuristics are applied uniformly at random regardless of recent outcome. The resulting
+trajectory has no such exploitable structure: the feature vector at decision time is
+not predictive of whether the candidate beats a historical objective value that
+the surrogate cannot observe.
+
+This is the clearest evidence so far that the Choice Function does something
+observable beyond its role as a heuristic selector: its adaptive behaviour creates
+structured correlations in the search state that a surrogate can learn. The absence
+of that structure under Simple Random leaves the surrogate with near-zero discriminative
+power. Any explanation of the SP-SR-LA decisions based on a surrogate with 51.75\%
+ROC-AUC would be explaining the surrogate's guesses rather than the actual policy. No
+SHAP attributions are reported for SP-SR-LA in this assessment.
+
+\subsection{Per-technique SHAP profiles}
+
+The key question for Assessment 4, following the pooling artefact identified in
+Assessment 3, is whether the Choice Function and Simple Random surrogates show
+different SHAP profiles for the non-population features. In the pooled surrogate
+population rank and diversity dominated precisely because they perfectly encoded
+topology membership. In the per-technique surrogates those features take sentinel
+value $-1$ for all single-point techniques, so the surrogate must explain acceptance
+on the basis of the remaining fourteen features.
+
+Table~\ref{tab:shap} shows the full SHAP profiles. Several patterns are clear.
+
+\textbf{feat\_llh\_count dominates the single-point surrogates.} This feature is
+the number of low-level heuristics available in the domain. Within a single run it
+is constant, but it differs across domains (SAT, BinPacking, FlowShop, TSP, VRP, and
+PersonnelScheduling all have different LLH counts). The per-technique surrogates are
+trained on pooled cross-domain decisions, so \texttt{feat\_llh\_count} acts as a
+domain identifier. The surrogate is learning domain-specific acceptance patterns via
+a domain label, not via domain-independent search-state features. This is the same
+kind of confound as the topology confound in Assessment 3, but at the domain level
+rather than the technique level. It is a direct consequence of pooling across domains.
+
+\textbf{feat\_iters\_since\_accept is critical for MP-CF but irrelevant for single-point.}
+For MP-CF, \texttt{feat\_iters\_since\_accept} carries SHAP 86.23, the dominant feature
+by a large margin. For all three single-point techniques it is zero. In multi-point
+search, acceptance means population replacement. When no replacement has occurred for
+many iterations, the population has fully converged and the probability that the next
+candidate exceeds the worst population member rises sharply. This feature captures
+exactly that stagnation threshold. In single-point Late Acceptance, the comparison
+is to the objective $L$ steps ago rather than to population state, so stagnation
+duration is less predictive.
+
+\textbf{feat\_gap\_to\_best is much more important with AILTA than with LA.}
+For SP-CF-AILTA, \texttt{feat\_gap\_to\_best} has SHAP 10.86, second only to the
+domain identifier. For SP-CF-LA and SP-SR-LA it is 0.32 and 0.51. AILTA adapts its
+acceptance threshold based on recent improvement history. When the gap to best is
+small, AILTA may tighten the threshold; when it is large, AILTA loosens it. The
+surrogate correctly identifies this as the primary driver of AILTA's decisions.
+
+\textbf{feat\_improve\_rate\_50 is consistently important across all single-point techniques}
+(1.48 for SP-CF-LA, 1.31 for SP-CF-AILTA, 1.28 for SP-SR-LA) but much less so
+for MP-CF (0.11). Recent search momentum is the primary signal for single-point
+acceptance decisions regardless of selection strategy, while multi-point replacement
+depends more on stagnation duration and solution quality.
+
+\textbf{The Choice Function creates more structured heuristic history signals.}
+The \texttt{feat\_last\_h1/h2/h3} features are more important in SP-CF-LA (0.39,
+0.21, 0.43) than in SP-SR-LA (0.06, 0.03, 0.08). Under CF, specific heuristics
+are preferentially selected based on past performance, creating informative patterns
+in heuristic history that correlate with acceptance likelihood. Under Simple Random,
+heuristic history carries no signal.
+
+\textbf{The expected AILTA stagnation signal does not appear.}
+\texttt{feat\_iters\_since\_accept} has SHAP 0.000 for SP-CF-AILTA. This was
+not the predicted outcome: AILTA explicitly loosens its threshold when stagnation is
+detected. A possible explanation is that the stagnation effect is captured indirectly
+through \texttt{feat\_iters\_since\_improve} (SHAP 0.317 for AILTA vs 0.155 for LA)
+and \texttt{feat\_gap\_to\_best} (10.86 for AILTA). AILTA's adaptive loosening may
+manifest in solution-quality space rather than time-since-accept space.
+
+\subsection{Footrule distances: heuristic utility shifts across domains}
+
+Table~\ref{tab:footrule} shows that heuristic utility rankings are not stable
+across the budget in any domain. The distances range from 4 (SP-CF-AILTA on
+BinPacking) to 32 (MP-CF on VRP), with most runs falling in the 12--24 range.
+
+Two patterns stand out. First, SP-CF-AILTA has the lowest mean footrule distance
+(13.5) across all six domains, meaning its heuristic utility rankings are the most
+stable of the four techniques. This is not obviously expected: AILTA is an adaptive
+acceptance method that changes its threshold dynamically. One possible explanation is
+that AILTA's adaptive threshold reduces the noise in acceptance outcomes, leading to
+cleaner heuristic performance signals that are more consistent over time.
+
+Second, MP-CF has the highest mean footrule distance (17.5) and achieves the single
+largest distance in the dataset: 32 for VRP. In multi-point search, the population
+maintains diversity and the fitness landscape seen by each member changes as the
+population evolves. Heuristics that help explore may be useful early and counterproductive
+late, or vice versa. This dynamic landscape creates more instability in heuristic
+rankings than the fixed incumbent in single-point search.
+
+\subsection{Log-return outliers and the median correction}
+
+Assessment 3 reported heuristic 6 at a mean log return of $+2.083$, roughly thirty
+times higher than the next best heuristic, and attributed this to near-zero-objective
+artefacts. Table~\ref{tab:logreturns} shows the corrected statistics with clipping
+to $[-10, +10]$ and with median alongside mean.
+
+Heuristics 6 and 11 show the classic pattern: large positive mean, zero median, and
+very large IQR ($1.115$ and $1.962$ respectively). The zero median indicates that
+the majority of applications of these heuristics produce no change, and the large
+mean is driven by a tail of high-return events. These heuristics are not systematically
+superior; they occasionally produce large improvements and otherwise do nothing. The
+trimmed mean (which removes the top and bottom 10\% of values) is substantially lower
+than the raw mean for both heuristics (0.370 and 0.605 vs 0.581 and 0.763), further
+confirming the tail structure.
+
+The correction directly addresses Assessment 3's item 6. Medians and counts are
+now reported, and skew diagnostics are printed and logged. A heuristic with mean
+$0.581$ on $245{,}000$ applications (heuristic 6) is qualitatively different from
+one with mean $0.058$ on $155{,}000$ applications (heuristic 10), and the new
+statistics make that difference visible.
+
+\subsection{Phase structure and the LIME grid}
+
+The 50-point LIME grid produced conditions only for MP-CF. The top five conditions
+(Table~\ref{tab:lime}) are dominated by features taking value $\leq 0.00$, with
+\texttt{feat\_gap\_to\_best} and \texttt{feat\_obj\_norm} both appearing at all 50
+grid points and consistently pushing toward \emph{rejection}. The condition
+\texttt{feat\_pop\_target\_rank} $\leq 0.00$ appears at 22 points and consistently
+pushes toward \emph{acceptance}: a candidate ranked at or below the median in the
+population strongly favours replacement.
+
+The zero-threshold conditions reflect the behaviour of a multi-point surrogate with
+extreme class imbalance. When gap-to-best is zero, the candidate matches the best
+population member and replacement is unlikely; the LIME neighbourhood is also
+concentrated at zero because elitism protects the best. This is a LIME boundary
+artefact rather than a substantive finding.
+
+For single-point techniques, the LIME grid produced no conditions. The next
+assessment should either (i) apply LIME to models trained with balanced class
+weights, or (ii) use LIME's alternative neighbourhood-construction for imbalanced
+targets. Direct measurement of acceptance rate against budget progress from the
+traces provides the model-free phase-structure evidence and does not suffer from
+this limitation.
+
+\subsection{Cross-domain generalisability}
+
+A core claim in the project is that the hyper-heuristic framework is
+domain-independent. The single-seed, single-instance results support this claim
+structurally: the same Java implementation ran unchanged across six substantially
+different problem types. The state features and surrogate architecture require no
+modification between domains.
+
+What the results do not yet establish is whether the \emph{explanation} is
+domain-independent. The SHAP profiles from the per-technique surrogates are trained
+on pooled cross-domain decisions; a domain-specific breakdown would require per-domain
+surrogates. This is the next logical step.
+
+\subsection{Limitations}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{5.5cm}p{8.5cm}}
+\toprule
+Limitation & Consequence \\
+\midrule
+Single instance, single seed & No statistical claims can be made; results may reflect
+the difficulty profile of one instance. \\
+Domain confound in per-technique surrogates & \texttt{feat\_llh\_count} acts as a domain
+label; SHAP attributions reflect domain identity as much as acceptance behaviour. \\
+SP-SR-LA surrogate fails (ROC-AUC 51.75\%) & No SHAP explanation is valid; Simple
+Random behaviour cannot be explained by this surrogate. \\
+Unscaled MP-CF budget & MP-CF final-objective comparisons are structurally unfair;
+budget-scaled variant unrun. \\
+LIME grid empty for single-point & Class imbalance prevents LIME from producing conditions
+for all three single-point techniques; phase structure hypothesis unvalidated. \\
+No Wilcoxon tests & Technique ordering in Table~\ref{tab:objectives} is preliminary;
+none is statistically significant. \\
+Wall-clock dominated by PersonnelScheduling & Each PS run takes 5--8 hours; scaling to
+ten instances or five seeds requires approximately $50\times$ the current runtime. \\
+\bottomrule
+\end{tabular}
+\caption{Limitations of the current assessment and their consequences.}
+\label{tab:limitations}
+\end{table}
+
+\section{Conclusion and Next Steps}
+
+Assessment 4 has delivered the six changes identified in Assessment 3. Real CHeSC
+HyFlex domains replace stubs, confirmed by \texttt{stub: false} in all 25 manifests.
+Per-technique surrogates are trained and compared. Log returns are stabilised with
+clipping, and medians and counts replace the sole-mean reporting. LIME is applied
+over a 50-point budget grid. The experimental matrix covers all six CHeSC domains.
+
+The headline findings are as follows.
+
+\textbf{Performance.} SP-CF-AILTA wins on three of six domains (SAT, FlowShop,
+PersonnelScheduling). MP-CF wins on two (TSP, VRP) despite a structural budget
+disadvantage. The random baseline wins on BinPacking.
+
+\textbf{Surrogate faithfulness.} The SP-SR-LA surrogate achieves ROC-AUC 51.75\%,
+indistinguishable from random. This is a new finding: without the Choice Function's
+adaptive selection, the 16 state features do not predict Late Acceptance decisions.
+The CF creates structured correlations in search state that the surrogate can learn;
+Simple Random does not.
+
+\textbf{SHAP profiles.} The per-technique surrogates reveal that
+\texttt{feat\_llh\_count} (LLH count, constant within a run) dominates single-point
+surrogates trained on pooled cross-domain data, indicating a domain-identity confound
+analogous to the topology confound in Assessment 3. Excluding this artefact,
+\texttt{feat\_improve\_rate\_50} is the primary signal for single-point techniques
+while \texttt{feat\_iters\_since\_accept} and \texttt{feat\_iters\_since\_improve}
+dominate MP-CF. \texttt{feat\_gap\_to\_best} is substantially more important for
+AILTA than for LA, which is consistent with AILTA's quality-sensitive threshold.
+
+\textbf{Work for the next submission:}
+
+\begin{enumerate}
+  \item Train per-domain surrogates (excluding \texttt{feat\_llh\_count}) to
+        remove the domain-identity confound and obtain domain-independent SHAP profiles.
+  \item Resolve the LIME imbalance problem for single-point techniques using
+        balanced class weights or targeted sampling.
+  \item Run budget-scaled MP-CF to make multi-point final-objective comparisons fair.
+  \item Run the full matrix (four techniques, six domains, ten instances, five
+        seeds) and apply Wilcoxon signed-rank tests with Holm correction.
+  \item Sweep Late Acceptance list length over $\{1, 5, 50, 100, 500, 1000\}$
+        and population size over $\{5, 10, 20, 50\}$.
+\end{enumerate}
+
+\section*{References}
+
+\begin{description}
+\setlength\itemsep{0pt}
+\item Burke, E.~K. and Bykov, Y. (2017). The late acceptance hill-climbing
+heuristic. \textit{European Journal of Operational Research}, 258(1), 70--78.
+
+\item Burke, E.~K., Gendreau, M., Hyde, M., Kendall, G., Ochoa, G., \"{O}zcan,
+E. and Qu, R. (2013). Hyper-heuristics: a survey of the state of the art.
+\textit{Journal of the Operational Research Society}, 64(12), 1695--1724.
+
+\item Cowling, P., Kendall, G. and Soubeiga, E. (2001). A hyperheuristic approach
+to scheduling a sales summit. In \textit{Practice and Theory of Automated
+Timetabling III}, LNCS 2079. Springer, 176--190.
+
+\item Drake, J.~H., \"{O}zcan, E. and Burke, E.~K. (2012). An improved choice
+function heuristic selection for cross domain heuristic search. In \textit{Parallel
+Problem Solving from Nature}, PPSN XII, LNCS 7492. Springer, 307--316.
+
+\item Friedman, J.~H. (2001). Greedy function approximation: a gradient boosting
+machine. \textit{The Annals of Statistics}, 29(5), 1189--1232.
+
+\item Lundberg, S.~M. and Lee, S.-I. (2017). A unified approach to interpreting
+model predictions. In \textit{Advances in Neural Information Processing Systems
+30}, 4765--4774.
+
+\item Ochoa, G., Hyde, M., Curtois, T., Vazquez-Rodriguez, J.~A., Walker, J.,
+Gendreau, M., Kendall, G., McCollum, B., Parkes, A.~J., Petrovic, S. and Burke,
+E.~K. (2012). HyFlex: a benchmark framework for cross-domain heuristic search. In
+\textit{Evolutionary Computation in Combinatorial Optimization}, LNCS 7245. Springer,
+136--147.
+
+\item Pillay, N. and Qu, R. (2018). \textit{Hyper-Heuristics: Theory and
+Applications}. Springer. Prescribed textbook.
+
+\item Ribeiro, M.~T., Singh, S. and Guestrin, C. (2016). ``Why should I trust
+you?'': explaining the predictions of any classifier. In \textit{Proceedings of the
+22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
+1135--1144.
+
+\item Yates, W.~B., Keedwell, E.~C. and Kheiri, A. (2025). Explainable
+optimisation through online and offline hyper-heuristics. \textit{ACM Transactions
+on Evolutionary Learning and Optimization}, 5(2), article 10, 1--29.
+\end{description}
+
+\end{document}

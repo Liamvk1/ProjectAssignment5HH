@@ -71,6 +71,11 @@ application {
     mainClass = 'za.ac.up.cos790.Main'
 }
 
+run {
+    // WSL2 requires VFORK to spawn child processes; has no effect on non-WSL JVMs.
+    jvmArgs '-Djdk.lang.Process.launchMechanism=VFORK'
+}
+
 test {
     useJUnitPlatform()
 }

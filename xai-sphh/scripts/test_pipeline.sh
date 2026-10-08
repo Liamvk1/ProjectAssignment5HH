@@ -211,7 +211,20 @@ find results/figures results/explanations results/models data/processed/yates \
   -name "*.pdf" -o -name "*.csv" -o -name "*.json" 2>/dev/null \
   | sort | sed 's|^|    |'
 
+# ---------------------------------------------------------------------------
+# Stage: report
+# ---------------------------------------------------------------------------
+echo ""
+echo "[+] Generating PDF report ..."
+python3 -m xaisphh.cli report \
+  --interim      data/interim \
+  --processed    data/processed \
+  --models       results/models \
+  --explanations results/explanations \
+  --out          results/report.pdf
+
 echo ""
 echo "=========================================="
 echo "  Pipeline complete. All stages passed."
+echo "  Report: results/report.pdf"
 echo "=========================================="

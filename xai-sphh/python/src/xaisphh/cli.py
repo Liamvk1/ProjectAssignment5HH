@@ -691,6 +691,52 @@ def stats(objectives: Path, out: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# report
+# ---------------------------------------------------------------------------
+
+@main.command()
+@click.option("--interim",      required=True, type=click.Path(exists=True, path_type=Path),
+              help="data/interim directory (run_metadata.parquet).")
+@click.option("--processed",    required=True, type=click.Path(exists=True, path_type=Path),
+              help="data/processed directory (contains yates/ subdirectory).")
+@click.option("--models",       required=True, type=click.Path(exists=True, path_type=Path),
+              help="results/models directory.")
+@click.option("--explanations", required=True, type=click.Path(exists=True, path_type=Path),
+              help="results/explanations directory.")
+@click.option("--out",          required=True, type=click.Path(path_type=Path),
+              help="Output PDF file path (e.g. results/report.pdf).")
+def report(interim: Path, processed: Path, models: Path,
+           explanations: Path, out: Path) -> None:
+    """Generate a multi-page PDF report of all pipeline outputs.
+
+    Always writes to --out (the 'latest' copy) and also saves a timestamped
+    copy alongside it so previous reports are not lost.
+    """
+    from xaisphh.report.generate import generate_report
+    import shutil
+    import matplotlib
+    matplotlib.use("Agg")
+
+    out = Path(out)
+    click.echo("Generating report ...")
+    generate_report(
+        interim_dir      = interim,
+        processed_dir    = processed,
+        models_dir       = models,
+        explanations_dir = explanations,
+        out_path         = out,
+    )
+    click.echo(f"  Report written to {out}.")
+
+    # Save a timestamped copy so previous runs are preserved.
+    from datetime import datetime
+    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    stamped = out.parent / f"{out.stem}_{ts}{out.suffix}"
+    shutil.copy2(out, stamped)
+    click.echo(f"  Timestamped copy saved to {stamped}.")
+
+
+# ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
 
