@@ -3,6 +3,15 @@
 build/
 java/build/
 
+# IDE / Eclipse-style compiled output (VS Code Java, Eclipse)
+bin/
+
+# Generated experiment configs (reproducible from generate_configs.py)
+config/generated/
+
+# Archived trace directories from protocol changes
+data/raw/traces_archive*/
+
 # IDE
 .idea/
 *.iml
