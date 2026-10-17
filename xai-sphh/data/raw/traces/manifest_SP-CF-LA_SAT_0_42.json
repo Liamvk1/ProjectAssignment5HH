@@ -1,0 +1,21 @@
+{
+  "runId" : "SP-CF-LA_SAT_0_42",
+  "config" : {
+    "techniqueName" : "SP-CF-LA",
+    "domain" : "SAT",
+    "instanceIndex" : 0,
+    "seed" : 42,
+    "budgetType" : "iterations",
+    "budgetValue" : 100000,
+    "outputDirectory" : "file:///mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/data/raw/traces/",
+    "techniqueParameters" : {
+      "listLength" : "50"
+    }
+  },
+  "gitCommitHash" : "cb2b4cc723e72f127e66f34594c97b78f8b59a19",
+  "hyflexVersion" : "unknown",
+  "startTime" : "2026-08-30T14:11:29.632771159Z",
+  "endTime" : "2026-08-30T14:16:11.018120763Z",
+  "machineId" : "LAPTOP-ILBUTRQ7",
+  "finalObjective" : 16.0
+}

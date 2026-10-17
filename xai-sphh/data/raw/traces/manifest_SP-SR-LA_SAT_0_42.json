@@ -1,0 +1,21 @@
+{
+  "runId" : "SP-SR-LA_SAT_0_42",
+  "config" : {
+    "techniqueName" : "SP-SR-LA",
+    "domain" : "SAT",
+    "instanceIndex" : 0,
+    "seed" : 42,
+    "budgetType" : "iterations",
+    "budgetValue" : 100000,
+    "outputDirectory" : "file:///mnt/c/Users/Liamv/OneDrive/Tuks/honours/COS790/xai-sphh/data/raw/traces/",
+    "techniqueParameters" : {
+      "listLength" : "50"
+    }
+  },
+  "gitCommitHash" : "cb2b4cc723e72f127e66f34594c97b78f8b59a19",
+  "hyflexVersion" : "unknown",
+  "startTime" : "2026-08-30T14:05:56.186787219Z",
+  "endTime" : "2026-08-30T14:11:21.669336189Z",
+  "machineId" : "LAPTOP-ILBUTRQ7",
+  "finalObjective" : 15.0
+}

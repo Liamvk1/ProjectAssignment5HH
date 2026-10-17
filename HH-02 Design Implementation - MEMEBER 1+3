@@ -11,7 +11,37 @@ A selection perturbative hyper-heuristic starts from a complete candidate soluti
 This has one consequence that overrides ordinary engineering instinct. The trace is the product. Where a normal implementation would discard intermediate state, this one records it. Where a normal implementation would log only interesting events, this one logs every decision including the ones that failed.
 
 The hyper-heuristic must not observe anything problem specific. This is the domain barrier. The search may see only the number of low-level heuristics available, their class, and the objective values that result from applying them. The feature extractor is where this is most easily breached, so it carries an explicit comment saying so.
+Experimental Protocol
 
+## Decision 1 HyFlex:
+   Use the seage/hyflex GitHub mirror.
+   Store the required HyFlex/domain JARs under lib/hyflex/.
+
+ ## Decision 2 Domains:
+   Run all six CHeSC 2011 domains:
+   SAT, Bin Packing, Flow Shop, Personnel Scheduling,
+   Travelling Salesman and Vehicle Routing.
+
+ ## Decision 3 Instances:
+   Use the five official CHeSC competition instances per domain.
+   Total = 30 instances.
+
+ ## Decision 4 Stopping criterion:
+   Use the CHeSC 2011 ten-nominal-minute benchmark protocol.
+   The actual machine-specific limit is determined by the
+   CHeSC benchmark tool.
+
+## Decision 5 Runs:
+   Run each instance 31 times.
+   Report the median objective value across the 31 runs.
+
+## Decision 6 Compute:
+   Execute using available personal/lab machines.
+   Reduced runs may be used during development only.
+
+## Decision 7 Seeding:
+    Use a fixed list of random seeds.
+   Record the seed with every run and trace.
 ## Decision 21: the population holds solutions
 
 The population is N complete candidate solutions. At each step the hyper-heuristic selects a low-level heuristic and applies it to one member. It does not hold heuristic sequences.

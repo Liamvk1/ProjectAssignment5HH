@@ -89,4 +89,48 @@ public abstract class BudgetPolicy {
                     "Unknown budgetType: '" + budgetType + "'. Expected 'time' or 'iterations'.");
         };
     }
+
+    /**
+     * Creates a budget policy that scales the base iteration limit by the population size.
+     *
+     * <p>When {@code budgetScaling} is {@code "per_member"}, a multi-point run with
+     * population size {@code p} receives {@code baseLimit * p} total heuristic applications.
+     * This ensures each individual has the same expected number of applications as a
+     * single-point run would have, enabling a fair comparison.
+     * When {@code budgetScaling} is {@code "none"}, the {@code baseLimit} is used unchanged.
+     *
+     * <p>This method only applies to iteration-based budgets; time-based budgets are not
+     * scaled because wall-clock time is already shared equally across the whole population.
+     *
+     * @param budgetType     either {@code "time"} or {@code "iterations"}
+     * @param budgetValue    base limit in the units implied by {@code budgetType}
+     * @param budgetScaling  either {@code "none"} or {@code "per_member"}
+     * @param populationSize population size used when {@code budgetScaling} is {@code "per_member"}
+     * @return the appropriate budget policy
+     * @throws IllegalArgumentException if {@code budgetType} or {@code budgetScaling} is not recognised
+     */
+    public static BudgetPolicy fromConfig(
+            final String budgetType,
+            final long budgetValue,
+            final String budgetScaling,
+            final int populationSize) {
+
+        if (budgetScaling != null && !"none".equalsIgnoreCase(budgetScaling)
+                && !"per_member".equalsIgnoreCase(budgetScaling)) {
+            throw new IllegalArgumentException(
+                    "Unknown budgetScaling: '" + budgetScaling
+                    + "'. Expected 'none' or 'per_member'.");
+        }
+
+        // Only iteration-based budgets are scaled; wall-clock is already shared equally.
+        final long effectiveLimit;
+        if ("per_member".equalsIgnoreCase(budgetScaling)
+                && "iterations".equalsIgnoreCase(budgetType)) {
+            effectiveLimit = budgetValue * populationSize;
+        } else {
+            effectiveLimit = budgetValue;
+        }
+
+        return fromConfig(budgetType, effectiveLimit);
+    }
 }

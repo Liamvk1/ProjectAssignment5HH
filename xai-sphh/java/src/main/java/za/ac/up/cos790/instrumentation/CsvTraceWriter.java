@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Buffered CSV implementation of {@link TraceWriter}.
@@ -20,6 +19,11 @@ import java.util.Map;
  * <p>Column order: fixed columns ({@link TraceRecord#FIXED_COLUMNS}), then
  * {@code feat_*} columns in insertion order, then {@code score_*} columns in
  * insertion order.
+ *
+ * <p><strong>Do not add filtering that logs only interesting rows.</strong> The
+ * analysis layer needs every application, including non-improving and rejected ones.
+ * A surrogate model trained only on successful applications cannot learn which
+ * conditions predict failure, and that is half of what this project is trying to explain.
  */
 public final class CsvTraceWriter implements TraceWriter {
 
@@ -76,22 +80,35 @@ public final class CsvTraceWriter implements TraceWriter {
         values.add(escape(record.heuristicClass()));
         values.add(Double.toString(record.depthOfSearch()));
         values.add(Double.toString(record.intensityOfMutation()));
+        values.add(Integer.toString(record.targetIndex()));
+        values.add(Integer.toString(record.sourceIndex()));
+        values.add(Integer.toString(record.secondParentIndex()));
         values.add(Double.toString(record.objectiveBefore()));
         values.add(Double.toString(record.objectiveAfter()));
         values.add(Double.toString(record.delta()));
-        values.add(Double.toString(record.logReturn()));
+
+        // log_return: write empty field for non-finite values (NaN or Infinite)
+        // rather than the literal string "NaN", which breaks Pandas dtype inference.
+        // This matches design decision DD-08 and Decision 27 of the Member 1+3 spec.
+        values.add(Double.isFinite(record.logReturn())
+                ? Double.toString(record.logReturn())
+                : "");
+
         values.add(Boolean.toString(record.accepted()));
         values.add(Double.toString(record.bestSoFar()));
         values.add(Double.toString(record.cpuTimeMs()));
+        values.add(Double.toString(record.populationBest()));
+        values.add(Double.toString(record.populationMean()));
+        values.add(Double.toString(record.populationDiversity()));
 
         // Dynamic feature columns.
         for (final double v : record.features().values()) {
-            values.add(Double.toString(v));
+            values.add(Double.isFinite(v) ? Double.toString(v) : "");
         }
 
         // Dynamic score columns.
         for (final double v : record.scores().values()) {
-            values.add(Double.toString(v));
+            values.add(Double.isFinite(v) ? Double.toString(v) : "");
         }
 
         writer.write(String.join(",", values));

@@ -18,15 +18,17 @@ def heuristic_ranking(
 ) -> pd.Series:
     """Rank heuristics by their mean effect on the objective value.
 
+    For minimisation problems a lower mean objective is better, so the heuristic
+    with the lowest mean receives rank 1.
+
     :param df: trace dataframe
     :param score_column: column whose mean is used to rank heuristics
     :param groupby: column containing heuristic identifiers
-    :return: series mapping heuristic id to rank (1 = best)
+    :return: series mapping heuristic id to rank (1 = best, i.e. lowest mean)
     """
-    raise NotImplementedError(
-        "TODO: group by heuristic_id, compute mean of score_column, "
-        "then rank ascending (lower objective is better for minimisation)."
-    )
+    means = df.groupby(groupby)[score_column].mean()
+    # ascending=True: lowest mean (best for minimisation) gets rank 1.
+    return means.rank(ascending=True, method="average")
 
 
 def footrule_distance(ranking_a: pd.Series, ranking_b: pd.Series) -> float:
@@ -40,7 +42,14 @@ def footrule_distance(ranking_a: pd.Series, ranking_b: pd.Series) -> float:
     :return: non-negative footrule distance; 0 means identical rankings
     :raises ValueError: if the two rankings do not contain the same heuristic ids
     """
-    raise NotImplementedError(
-        "TODO: align the two series on their index, compute |rank_a - rank_b|, "
-        "sum, and return as float."
-    )
+    if set(ranking_a.index) != set(ranking_b.index):
+        only_a = set(ranking_a.index) - set(ranking_b.index)
+        only_b = set(ranking_b.index) - set(ranking_a.index)
+        raise ValueError(
+            f"Rankings have different heuristic ids. "
+            f"Only in A: {only_a}. Only in B: {only_b}."
+        )
+
+    # Align on shared index before differencing.
+    a, b = ranking_a.align(ranking_b, join="inner")
+    return float((a - b).abs().sum())

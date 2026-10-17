@@ -26,6 +26,11 @@ import java.time.Instant;
  * @param endTime         Wall-clock time at which the search ended.
  * @param machineId       Hostname of the machine on which the run executed.
  * @param finalObjective  Objective value of the best solution found.
+ * @param stub            Whether this run used stub HyFlex classes rather than the real CHeSC jars.
+ *                        {@code true} for all runs until the real jars are placed in
+ *                        {@code lib/hyflex/}. The Python pipeline uses this flag to prevent
+ *                        mixing stub and real runs in a single analysis unless
+ *                        {@code --allow-mixed} is explicitly passed.
  */
 public record RunManifest(
         String runId,
@@ -35,7 +40,8 @@ public record RunManifest(
         Instant startTime,
         Instant endTime,
         String machineId,
-        double finalObjective
+        double finalObjective,
+        boolean stub
 ) {
 
     private static final ObjectMapper MAPPER = buildMapper();

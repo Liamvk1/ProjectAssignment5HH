@@ -1,0 +1,12 @@
+# Multi-point (population), Choice Function selection.
+# No acceptance strategy: replacement rule acts as acceptance (Decision 25).
+
+techniqueName: MP-CF
+domain: SAT
+instanceIndex: 0
+seed: 42
+budgetType: iterations
+budgetValue: 100000
+outputDirectory: data/raw/traces
+techniqueParameters:
+  populationSize: 10

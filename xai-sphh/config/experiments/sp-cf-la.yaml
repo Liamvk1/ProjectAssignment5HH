@@ -1,0 +1,12 @@
+# Single-point, Choice Function selection, Late Acceptance.
+# This is the primary experimental technique (DD-01, DD-02).
+
+techniqueName: SP-CF-LA
+domain: SAT
+instanceIndex: 0
+seed: 42
+budgetType: iterations
+budgetValue: 100000
+outputDirectory: data/raw/traces
+techniqueParameters:
+  listLength: 50

@@ -16,6 +16,11 @@ import java.util.Map;
  * @param seed               Random seed for reproducibility.
  * @param budgetType         Either {@code "time"} (milliseconds) or {@code "iterations"}.
  * @param budgetValue        Budget limit in the units given by {@code budgetType}.
+ * @param budgetScaling      How multi-point budgets are scaled relative to population size.
+ *                           {@code "none"} (default) leaves the budget unchanged.
+ *                           {@code "per_member"} multiplies the base budget by the population
+ *                           size so each individual receives the same number of applications
+ *                           as a single-point run (DD-04 extension, Item 6).
  * @param outputDirectory    Directory into which trace CSV and run manifest are written.
  * @param techniqueParameters Technique-specific key/value pairs passed to the strategy.
  */
@@ -26,14 +31,18 @@ public record RunConfig(
         long seed,
         String budgetType,
         long budgetValue,
+        String budgetScaling,
         Path outputDirectory,
         Map<String, String> techniqueParameters
 ) {
 
     /**
-     * Compact constructor that defensively copies the parameter map to ensure immutability.
+     * Compact constructor that defensively copies the parameter map and applies defaults.
      */
     public RunConfig {
+        if (budgetScaling == null || budgetScaling.isBlank()) {
+            budgetScaling = "none";
+        }
         techniqueParameters = Map.copyOf(techniqueParameters);
     }
 }

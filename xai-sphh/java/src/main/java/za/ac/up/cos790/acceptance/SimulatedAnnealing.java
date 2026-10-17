@@ -47,17 +47,37 @@ public final class SimulatedAnnealing implements AcceptanceStrategy {
      * @param iterationIndex     current iteration, used to advance the cooling schedule
      * @return {@code true} if the candidate should be accepted
      */
+    /**
+     * Accepts improving and equal moves unconditionally. Accepts worsening moves
+     * with probability {@code exp(-delta / temperature)}, then applies the
+     * geometric cooling schedule.
+     *
+     * <p>This implementation is kept as an ablation comparison against Late
+     * Acceptance. It is not the baseline; Late Acceptance is preferred because it
+     * requires no calibration to the objective scale (design decision DD-02).
+     *
+     * @param incumbentObjective current incumbent objective
+     * @param candidateObjective candidate objective
+     * @param bestSoFar          best objective seen (unused by this strategy)
+     * @param iterationIndex     current iteration (unused; cooling is per-call)
+     * @return {@code true} if the candidate should be accepted
+     */
     @Override
     public boolean accept(final double incumbentObjective,
                           final double candidateObjective,
                           final double bestSoFar,
                           final long iterationIndex) {
-        // TODO (DD-02): Implement the Simulated Annealing acceptance criterion and
-        //               cooling schedule. Decide whether to use time-based or
-        //               iteration-based cooling, and how to set the initial temperature
-        //               relative to the problem scale.
-        throw new UnsupportedOperationException(
-                "TODO (DD-02): SimulatedAnnealing.accept is not yet implemented. "
-                + "Resolve design-decisions.md DD-02 (temperature parameters) first.");
+        final double delta = candidateObjective - incumbentObjective;
+        final boolean accepted;
+        if (delta <= 0.0) {
+            accepted = true;
+        } else {
+            final double probability = (temperature > 0.0)
+                    ? Math.exp(-delta / temperature)
+                    : 0.0;
+            accepted = rng.nextDouble() < probability;
+        }
+        temperature *= decayRate;
+        return accepted;
     }
 }

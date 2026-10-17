@@ -1,0 +1,18 @@
+{
+  "accuracy": 0.97431,
+  "accuracy_std": 0.0009409569596958284,
+  "roc_auc": 0.9496189207151191,
+  "roc_auc_std": 0.0022085136744075537,
+  "f1": 0.9866923005375117,
+  "f1_std": 0.0004814056456604447,
+  "majority_baseline_accuracy": 0.95315,
+  "technique": "SP-CF-AILTA",
+  "n_samples": 100000,
+  "n_features_used": 13,
+  "dropped_features": [
+    "feat_llh_count",
+    "feat_pop_diversity",
+    "feat_pop_target_rank"
+  ],
+  "mode": "per_technique_surrogate"
+}
