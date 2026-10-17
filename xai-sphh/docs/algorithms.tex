@@ -1,0 +1,191 @@
+% Algorithm specifications for the Assessment 5 report.
+% Transcribed from the implementation; see docs/algorithms.md for the annotated version.
+%
+% Requires in the preamble:
+%   \usepackage{algorithm}
+%   \usepackage{algpseudocode}
+%   \usepackage{amsmath}
+%
+% Include with:  \input{algorithms}
+
+% -----------------------------------------------------------------------------
+\begin{algorithm}[htbp]
+\caption{Single-point selection hyper-heuristic. Techniques \texttt{SP-SR-LA},
+\texttt{SP-CF-LA} and \texttt{SP-CF-AILTA} instantiate this loop with different
+selection and acceptance objects.}
+\label{alg:sphh}
+\begin{algorithmic}[1]
+\Require problem domain $P$, selector $S$, acceptance criterion $A$, budget $B$
+\Ensure best solution found
+\State allocate solution memory of size 3 \Comment{incumbent, candidate, best}
+\State $x_{\text{inc}} \gets P.\textsc{InitialiseSolution}()$
+\State $x_{\text{best}} \gets x_{\text{inc}}$
+\State $\textit{runMin} \gets f(x_{\text{inc}})$;\quad $\textit{runMax} \gets f(x_{\text{inc}})$
+\State $i \gets 0$;\quad $\sigma_{\text{imp}} \gets 0$;\quad $\sigma_{\text{acc}} \gets 0$
+\While{$\neg B.\textsc{Exhausted}(i)$}
+  \State $s \gets \textsc{SnapshotState}(\cdot)$
+  \State $h \gets S.\textsc{Select}(s)$ \Comment{Algorithm~\ref{alg:cfselect} or uniform random}
+  \State $P.\textsc{SetDepthOfSearch}(0.1)$;\quad $P.\textsc{SetIntensityOfMutation}(0.1)$
+  \State $t_0 \gets \textsc{Clock}()$
+  \State $x_{\text{cand}} \gets P.\textsc{ApplyHeuristic}(h, x_{\text{inc}})$
+  \State $\textit{cpu} \gets \textsc{Clock}() - t_0$
+  \State $\delta \gets f(x_{\text{cand}}) - f(x_{\text{inc}})$
+  \If{$f(x_{\text{cand}}) < f(x_{\text{best}})$}
+     \Comment{before acceptance: a rejected candidate may still be the run best}
+    \State $x_{\text{best}} \gets x_{\text{cand}}$;\quad $\sigma_{\text{imp}} \gets 0$
+  \Else
+    \State $\sigma_{\text{imp}} \gets \sigma_{\text{imp}} + 1$
+  \EndIf
+  \State $\textit{runMin} \gets \min(\textit{runMin}, f(x_{\text{cand}}))$;\quad
+         $\textit{runMax} \gets \max(\textit{runMax}, f(x_{\text{cand}}))$
+  \If{$A.\textsc{Accept}(f(x_{\text{inc}}), f(x_{\text{cand}}), f(x_{\text{best}}), i)$}
+    \State $x_{\text{inc}} \gets x_{\text{cand}}$;\quad $\sigma_{\text{acc}} \gets 0$
+  \Else
+    \State $\sigma_{\text{acc}} \gets \sigma_{\text{acc}} + 1$
+  \EndIf
+  \State $S.\textsc{RecordOutcome}(h, \delta, \textit{cpu})$
+     \Comment{Algorithm~\ref{alg:cfupdate}; no-op for Simple Random}
+  \State \textsc{WriteTraceRow}$(\cdot)$
+  \State $i \gets i + 1$
+\EndWhile
+\State \textbf{return} $x_{\text{best}}$
+   \Comment{copied into the incumbent slot so the framework scores the best found}
+\end{algorithmic}
+\end{algorithm}
+
+% -----------------------------------------------------------------------------
+\begin{algorithm}[htbp]
+\caption{Multi-point selection hyper-heuristic (\texttt{MP-CF}). The replacement rule
+acts as the acceptance criterion; the population best is never overwritten.}
+\label{alg:mphh}
+\begin{algorithmic}[1]
+\Require problem domain $P$, selector $S$, budget $B$, population size $p$
+\State allocate solution memory of size $p + 1$
+\For{$j \gets 0$ \textbf{to} $p-1$}
+  \State $P.\textsc{InitialiseSolution}(j)$;\quad $\textit{obj}[j] \gets f(j)$
+\EndFor
+\State $\textit{bestSlot} \gets \arg\min_j \textit{obj}[j]$;\quad
+       $v_{\text{best}} \gets \textit{obj}[\textit{bestSlot}]$
+\State $i \gets 0$
+\While{$\neg B.\textsc{Exhausted}(i)$}
+  \State $\tau \gets \textsc{TournamentWorst}(\textit{obj})$
+     \Comment{Algorithm~\ref{alg:tournament}a: the \emph{worse} of two}
+  \State $s \gets \textsc{SnapshotState}(\cdot, \textit{popMean}, \textit{popDiv}, \textit{rank})$
+  \State $h \gets S.\textsc{Select}(s)$
+  \If{$h$ is a crossover heuristic}
+    \State $\pi \gets \textsc{TournamentBestExcluding}(\textit{obj}, \tau)$
+    \State $v_{\text{cand}} \gets P.\textsc{ApplyHeuristic}(h, \tau, \pi)$
+  \Else
+    \State $v_{\text{cand}} \gets P.\textsc{ApplyHeuristic}(h, \tau)$
+  \EndIf
+  \State $\delta \gets v_{\text{cand}} - \textit{obj}[\tau]$
+  \If{$v_{\text{cand}} < v_{\text{best}}$} \State $v_{\text{best}} \gets v_{\text{cand}}$ \EndIf
+  \If{$v_{\text{cand}} < \textit{obj}[\tau]$ \textbf{and} $\tau \neq \textit{bestSlot}$}
+     \Comment{elitism enforced before the write}
+    \State $\textit{obj}[\tau] \gets v_{\text{cand}}$;\quad
+           $\textit{bestSlot} \gets \arg\min_j \textit{obj}[j]$
+  \EndIf
+  \State $S.\textsc{RecordOutcome}(h, \delta, \textit{cpu})$;\quad
+         \textsc{WriteTraceRow}$(\cdot)$;\quad $i \gets i + 1$
+\EndWhile
+\State \textbf{return} the individual of lowest objective
+\end{algorithmic}
+\end{algorithm}
+
+% -----------------------------------------------------------------------------
+\begin{algorithm}[htbp]
+\caption{Modified Choice Function, selection step. The warm-up pass guarantees at least
+one observation of $f_1$ per heuristic before any score is used.}
+\label{alg:cfselect}
+\begin{algorithmic}[1]
+\Require number of heuristics $n$, terms $f_1, f_2, f_3$, weight $\varphi$,
+         previous heuristic $\rho$, tie-breaking stream $R$
+\If{$\textit{warmup} < n$}
+  \State $\textbf{score} \gets [\,\mathrm{NaN}, \ldots, \mathrm{NaN}\,]$
+     \Comment{marks warm-up rows in the trace}
+  \State \textbf{return} $\textit{warmup}{+}{+}$
+\EndIf
+\For{$h \gets 0$ \textbf{to} $n-1$}
+  \State $g \gets f_2[\rho][h]$ \textbf{if} $\rho \geq 0$ \textbf{else} $0$
+  \State $\textit{score}[h] \gets \varphi\, f_1[h] + \varphi\, g + (1-\varphi)\, f_3[h]$
+\EndFor
+\State $\beta \gets \max_h \textit{score}[h]$;\quad
+       $T \gets |\{\, h : \textit{score}[h] = \beta \,\}|$
+\If{$T = 1$}
+  \State \textbf{return} the unique maximiser \Comment{$R$ is not consumed}
+\EndIf
+\State \textbf{return} the $(R.\textsc{NextInt}(T)+1)$-th maximiser in ascending index order
+\end{algorithmic}
+\end{algorithm}
+
+% -----------------------------------------------------------------------------
+\begin{algorithm}[htbp]
+\caption{Modified Choice Function, update step. The adaptive weight $\varphi$ follows
+Drake, \"{O}zcan and Burke (2012): it snaps to $0.99$ on improvement and decays by
+$0.01$ otherwise, shifting weight from performance towards idle time as the search stalls.}
+\label{alg:cfupdate}
+\begin{algorithmic}[1]
+\Require applied heuristic $h$, objective change $\delta$, measured time $\textit{cpu}$
+\State $e \gets \max(\textit{cpu}, 1)$ \Comment{milliseconds; guards coarse clocks}
+\State $r \gets -\delta / e$ \Comment{improvement per unit time; $\delta < 0$ improves}
+\State $f_1[h] \gets r + \varphi\, f_1[h]$
+\If{$\rho \geq 0$}
+  \State $f_2[\rho][h] \gets r + \varphi\, f_2[\rho][h]$
+     \Comment{asymmetric: $i$ then $j$ updates $f_2[i][j]$ only}
+\EndIf
+\For{$k \gets 0$ \textbf{to} $n-1$}
+  \State $f_3[k] \gets 0$ \textbf{if} $k = h$ \textbf{else} $f_3[k] + e$
+\EndFor
+\State $\varphi \gets 0.99$ \textbf{if} $\delta < 0$ \textbf{else} $\max(0.01,\ \varphi - 0.01)$
+\State $\rho \gets h$
+\end{algorithmic}
+\end{algorithm}
+
+% -----------------------------------------------------------------------------
+\begin{algorithm}[htbp]
+\caption{Acceptance criteria. All take the incumbent and candidate objectives and
+return a Boolean. $L = 50$ is the Late Acceptance list length.}
+\label{alg:acceptance}
+\begin{algorithmic}[1]
+\Statex \textbf{Late Acceptance} \quad\textit{state:} circular $\textit{hist}[0..L{-}1]$
+        initialised to $+\infty$, pointer $\eta$
+\State $a \gets (v_{\text{cand}} \leq v_{\text{inc}}) \lor (v_{\text{cand}} \leq \textit{hist}[\eta])$
+\State $v' \gets v_{\text{cand}}$ \textbf{if} $a$ \textbf{else} $v_{\text{inc}}$
+\State \textbf{if} $v' < \textit{hist}[\eta]$ \textbf{then} $\textit{hist}[\eta] \gets v'$
+       \Comment{tighten only}
+\State $\eta \gets (\eta + 1) \bmod L$;\quad \textbf{return} $a$
+\Statex
+\Statex \textbf{AILTA} \quad\textit{state:} $\theta_0 = 0.02\,|f_0|$, budget $T$
+\State $\pi \gets \min(1,\ i/T)$;\quad $\theta \gets \theta_0\,(1-\pi)$
+\State \textbf{return} $(v_{\text{cand}} - v_{\text{inc}}) \leq \theta$
+       \Comment{degenerates to improving-or-equal at $\pi = 1$}
+\Statex
+\Statex \textbf{Simulated Annealing} \quad\textit{state:} temperature $T$, decay $\lambda$
+\State $\delta \gets v_{\text{cand}} - v_{\text{inc}}$
+\State $a \gets \textbf{true}$ \textbf{if} $\delta \leq 0$
+       \textbf{else} $\big(R.\textsc{NextDouble}() < e^{-\delta/T}\big)$
+\State $T \gets \lambda T$;\quad \textbf{return} $a$
+\Statex
+\Statex \textbf{Improving or Equal} \quad \textbf{return} $v_{\text{cand}} \leq v_{\text{inc}}$
+\Statex \textbf{Naive} \quad \textbf{return} \textbf{true}
+\end{algorithmic}
+\end{algorithm}
+
+% -----------------------------------------------------------------------------
+\begin{algorithm}[htbp]
+\caption{Binary tournament selection used by the multi-point hyper-heuristic. The
+asymmetry is deliberate: replacing the \emph{worse} individual maximises expected benefit,
+while the \emph{better} individual supplies crossover material.}
+\label{alg:tournament}
+\begin{algorithmic}[1]
+\Statex \textbf{(a) Replacement target}
+\State draw distinct $a, b$ uniformly from $\{0, \ldots, p-1\}$
+\State \textbf{return} $a$ \textbf{if} $\textit{obj}[a] \geq \textit{obj}[b]$ \textbf{else} $b$
+   \Comment{the worse individual}
+\Statex
+\Statex \textbf{(b) Second crossover parent, excluding target $\tau$}
+\State draw distinct $a, b$ uniformly from $\{0, \ldots, p-1\} \setminus \{\tau\}$
+\State \textbf{return} $a$ \textbf{if} $\textit{obj}[a] \leq \textit{obj}[b]$ \textbf{else} $b$
+   \Comment{the better individual}
+\end{algorithmic}
+\end{algorithm}
