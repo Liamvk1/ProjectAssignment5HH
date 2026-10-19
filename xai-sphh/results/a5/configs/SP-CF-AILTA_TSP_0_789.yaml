@@ -1,0 +1,9 @@
+techniqueName: SP-CF-AILTA
+domain: TSP
+instanceIndex: 0
+seed: 789
+budgetType: iterations
+budgetValue: 10000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  totalIterations: 10000

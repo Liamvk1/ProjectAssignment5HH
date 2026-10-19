@@ -1,0 +1,9 @@
+techniqueName: SP-SR-LA
+domain: VRP
+instanceIndex: 0
+seed: 4242
+budgetType: iterations
+budgetValue: 50000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  listLength: 50

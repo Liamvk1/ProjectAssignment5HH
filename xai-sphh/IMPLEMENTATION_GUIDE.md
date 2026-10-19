@@ -4,6 +4,10 @@ Complete technical reference for the xai-sphh repository. Covers the research
 objective, every component in the codebase, how they connect, and the data that
 flows between them.
 
+> **Other docs:** [README.md](README.md) — project overview |
+> [RUNNER_INSTRUCTIONS.md](RUNNER_INSTRUCTIONS.md) — how to build and run |
+> [docs/system-explainer.pdf](docs/system-explainer.pdf) — plain-English explainer
+
 ---
 
 ## Table of Contents
@@ -77,14 +81,16 @@ search?**
  manifest_<name>_<domain>_<inst>_<seed>.json
      │
      ▼
- Python Analysis Pipeline (6 stages)
+ Python Analysis Pipeline (8 stages)
      │
-     ├─ load      → traces.parquet
-     ├─ features  → X.parquet, y.parquet
-     ├─ yates     → log_returns, percentile_ranks, footrule_distances
-     ├─ train     → surrogate.joblib + faithfulness_metrics.json
-     ├─ explain   → SHAP values, interaction heatmap, LIME figures
-     └─ figures   → convergence.pdf, shap_importance.pdf
+     ├─ load      → data/interim/traces.parquet + run_metadata.parquet
+     ├─ features  → data/processed/X.parquet, y.parquet, technique.parquet
+     ├─ yates     → log_returns, percentile_ranks, footrule_distances, acceptance_rate
+     ├─ train     → results/models/<technique>/surrogate.joblib + faithfulness_metrics.json
+     ├─ explain   → results/explanations/<technique>/SHAP + LIME grid outputs
+     ├─ figures   → convergence.pdf, per-technique shap_importance.pdf
+     ├─ stats     → Wilcoxon pairwise significance tests (CSV)
+     └─ report    → results/report.pdf (multi-page PDF of all outputs)
 ```
 
 ---
@@ -164,49 +170,59 @@ xai-sphh/
 ├── python/
 │   ├── pyproject.toml                  Package metadata, dependencies, entry point
 │   └── src/xaisphh/
-│       ├── cli.py                      Click CLI: 6 commands (load/features/yates/train/explain/figures)
+│       ├── cli.py                      Click CLI: 8 commands (load/features/yates/train/explain/figures/stats/report)
 │       ├── io/
 │       │   ├── schema.py               Column names, dtypes, prefixes, schema version
-│       │   └── loader.py               CSV → DataFrame + schema validation
+│       │   └── loader.py               CSV → DataFrame + schema validation + manifest loading
 │       ├── features/
-│       │   └── matrix.py               DataFrame → (X, y) feature matrix
+│       │   └── matrix.py               DataFrame → (X, y, technique) feature matrix
 │       ├── yates/
-│       │   ├── log_returns.py          Log return computation
+│       │   ├── log_returns.py          Log return computation with clipping + heuristic stats
 │       │   ├── percentiles.py          Percentile rank and bucket helpers
-│       │   └── footrule.py             Spearman footrule distance between heuristic rankings
+│       │   ├── footrule.py             Spearman footrule distance between heuristic rankings
+│       │   └── acceptance_rate.py      Acceptance/improvement rate vs. search progress
 │       ├── surrogate/
-│       │   ├── train.py                Train GradientBoosting / RF / LR surrogate
-│       │   └── evaluate.py             5-fold CV faithfulness metrics
+│       │   ├── train.py                Train GradientBoosting / RF / LR surrogate (per-technique)
+│       │   ├── evaluate.py             5-fold CV faithfulness metrics
+│       │   └── ablation.py             Identity/class ablation study
 │       ├── explain/
 │       │   ├── shap_global.py          SHAP TreeExplainer / KernelExplainer, summary plot
 │       │   ├── shap_interactions.py    SHAP interaction values, heatmap
-│       │   └── lime_local.py           LIME LimeTabularExplainer, local figure
-│       └── figures/
-│           └── style.py                Shared matplotlib style, colour palette
+│       │   ├── lime_local.py           LIME LimeTabularExplainer, single-instance figure
+│       │   └── lime_grid.py            Systematic LIME grid over evenly-spaced decision points
+│       ├── figures/
+│       │   └── style.py                Shared matplotlib style, colour palette
+│       ├── report/
+│       │   └── generate.py             Multi-page PDF report generator
+│       └── scripts/
+│           ├── generate_configs.py     Batch config generation helper
+│           ├── run_matrix.py           Programmatic experiment matrix runner
+│           └── wilcoxon_stats.py       Pairwise Wilcoxon signed-rank tests with Holm correction
 │
 ├── data/
 │   ├── raw/traces/                     Java output: trace CSVs + manifest JSONs
-│   └── processed/                      Python stage 1-2: traces.parquet, X.parquet, y.parquet
+│   ├── interim/                        Stage 1 output: traces.parquet, run_metadata.parquet
+│   └── processed/                      Stage 2 output: X.parquet, y.parquet, technique.parquet
 │
 ├── results/
-│   ├── models/                         surrogate.joblib, faithfulness_metrics.json
-│   ├── explanations/                   SHAP CSV, PDF plots, lime/ subfolder
+│   ├── models/
+│   │   ├── <technique>/                Per-technique: surrogate.joblib, faithfulness_metrics.json
+│   │   └── technique_comparison.csv    Cross-technique faithfulness summary
+│   ├── explanations/
+│   │   ├── <technique>/                Per-technique: SHAP CSVs, PDF plots, LIME grid outputs
+│   │   └── shap_comparison_by_technique.csv  Cross-technique SHAP comparison
 │   ├── yates/                          log_returns, percentile_ranks, footrule_distances CSVs
-│   └── figures/                        convergence.pdf, shap_importance.pdf
+│   ├── figures/                        convergence.pdf, shap_importance_<technique>.pdf
+│   └── report.pdf                      Generated PDF report
 │
 ├── docs/
 │   ├── trace-schema.md                 Authoritative column specification (v2)
-│   └── design-decisions.md            Resolved design decisions (DD-01 through DD-28)
+│   ├── design-decisions.md             Resolved design decisions (DD-01 through DD-28)
+│   └── ProjectAssessment4.pdf          Assessment 4 report
 │
 ├── scripts/
-│   ├── run_experiments.sh
-│   ├── build_features.sh
-│   ├── make_figures.sh
-│   └── extract_heuristic_catalogue.sh
-│
-├── report/                             LaTeX report source
-│   ├── main.tex
-│   └── sections/
+│   ├── run_domain.sh                   Interactive experiment runner (domain/technique/budget/seed menus)
+│   └── test_pipeline.sh                Full end-to-end smoke test
 │
 ├── README.md
 ├── RUNNER_INSTRUCTIONS.md              Step-by-step build and run guide
@@ -557,25 +573,34 @@ The entry point `xaisphh` maps to `xaisphh.cli:main`.
 
 ```
 python/src/xaisphh/
-├── cli.py             All 6 CLI subcommands (Click)
+├── cli.py             All 8 CLI subcommands (Click)
 ├── io/
 │   ├── schema.py      FIXED_COLUMNS, FIXED_DTYPES, FEAT_PREFIX, SCORE_PREFIX
-│   └── loader.py      load_trace(), load_traces(), validate_schema()
+│   └── loader.py      load_traces(), load_manifests_for_traces(), build_run_metadata()
 ├── features/
 │   └── matrix.py      build_feature_matrix()
 ├── yates/
-│   ├── log_returns.py compute_log_returns()
+│   ├── log_returns.py compute_log_returns(), heuristic_stats()
 │   ├── percentiles.py percentile_rank(), bucket_objectives()
-│   └── footrule.py    heuristic_ranking(), footrule_distance()
+│   ├── footrule.py    heuristic_ranking(), footrule_distance()
+│   └── acceptance_rate.py  acceptance_rate_by_progress(), save_acceptance_rate_plot()
 ├── surrogate/
-│   ├── train.py       train_surrogate(), save_surrogate(), load_surrogate()
-│   └── evaluate.py    faithfulness_score()
+│   ├── train.py       train_surrogate(), save_surrogate(), load_surrogate(), drop_constant_features()
+│   ├── evaluate.py    faithfulness_score()
+│   └── ablation.py    run_ablation()
 ├── explain/
-│   ├── shap_global.py     compute_shap_values(), global_feature_importance(), save_summary_plot()
-│   ├── shap_interactions.py  compute_interaction_values(), save_interaction_heatmap()
-│   └── lime_local.py      explain_instance(), save_explanation_plot()
-└── figures/
-    └── style.py       apply_style(), domain_colour(), COLOURS
+│   ├── shap_global.py       compute_shap_values(), global_feature_importance(), save_summary_plot()
+│   ├── shap_interactions.py compute_interaction_values(), save_interaction_heatmap()
+│   ├── lime_local.py        explain_instance(), save_explanation_plot()
+│   └── lime_grid.py         lime_grid(), condition_frequency_table(), save_condition_frequency_plot()
+├── figures/
+│   └── style.py       apply_style(), domain_colour(), COLOURS
+├── report/
+│   └── generate.py    generate_report()
+└── scripts/
+    ├── generate_configs.py  Batch YAML config generation
+    ├── run_matrix.py        Programmatic full-matrix runner
+    └── wilcoxon_stats.py    wilcoxon_pairwise() with Holm correction
 ```
 
 ### 6.2 Stage 1: Load (`io/loader.py`)
@@ -592,8 +617,9 @@ Schema validation steps:
 4. `accepted` string `"true"/"false"` → pandas `boolean` dtype
 5. Dynamic `feat_*` and `score_*` columns cast to `float64`
 
-**Output:** `data/processed/traces.parquet` — a single Parquet file containing
-all runs concatenated, schema-validated.
+**Output:** `data/interim/traces.parquet` — a single Parquet file containing
+all runs concatenated, schema-validated. Also `data/interim/run_metadata.parquet`
+containing per-run attributes (technique, domain, seed, stub flag, finalObjective).
 
 **Schema constants** (`io/schema.py`):
 - `FIXED_COLUMNS` — ordered list of the 19 column names
@@ -617,9 +643,11 @@ Critical design decisions:
   by `FeatureExtractor` for absent heuristic history entries.
 - `y = df["accepted"].astype(int)` — converts boolean to 0/1 integer.
 
-**Output:** `data/processed/X.parquet` (feature matrix), `data/processed/y.parquet` (target).
+**Output:** `data/processed/X.parquet` (feature matrix), `data/processed/y.parquet`
+(target), `data/processed/technique.parquet` (per-row technique label used by
+`train` and `explain` to split data per technique).
 
-Typical shape: `(400000, 16)` for 4 runs × 100k iterations.
+Typical shape: `(2500000, 16)` for 25 runs × 100k iterations.
 
 ### 6.4 Stage 3: Yates Measures (`yates/`)
 
@@ -662,10 +690,13 @@ over time (adaptive behaviour).
 
 ```python
 train_surrogate(X, y, model_type="gradient_boosting", random_state=42) → model
+drop_constant_features(X) → (X_filtered, dropped_list)
 ```
 
-Trains a classifier to predict whether the hyper-heuristic will accept a
-candidate given the current state features. Three supported families:
+By default the `train` CLI command trains **one surrogate per technique**, not
+a pooled model. Constant features (e.g. `feat_pop_diversity` for single-point
+techniques where it is always -1.0) are automatically dropped before training.
+Three model families are supported:
 
 | Model | Config | Notes |
 |-------|--------|-------|
@@ -673,7 +704,8 @@ candidate given the current state features. Three supported families:
 | `random_forest` | 200 trees, no depth limit, min_leaf 5 | Faster. Also SHAP-compatible. |
 | `logistic_regression` | Pipeline: StandardScaler + LR (C=1.0) | Interpretable baseline. Needs KernelExplainer. |
 
-Serialised with `joblib` to `results/models/surrogate.joblib`.
+Each technique's model is serialised with `joblib` to
+`results/models/<technique>/surrogate.joblib`.
 
 #### Faithfulness (`surrogate/evaluate.py`)
 
@@ -690,8 +722,31 @@ faithfulness_score(model, X, y) → dict
 | `f1` ± `f1_std` | Harmonic mean of precision and recall |
 | `majority_baseline_accuracy` | `max(class_freq)` — trivial classifier baseline |
 
-A surrogate with accuracy well above the majority baseline is a faithful
-approximation of the real policy, making SHAP and LIME explanations valid.
+A surrogate with ROC-AUC well above 0.5 is a faithful approximation of the
+real policy, making SHAP explanations valid. SP-SR-LA is a known exception:
+Simple Random selection creates no learnable correlations, so its surrogate
+degrades to random (ROC-AUC ≈ 0.52).
+
+**Observed results** (25 runs, 6 domains, 100k iterations each):
+
+| Technique | Accuracy | ROC-AUC | Majority baseline |
+|-----------|----------|---------|------------------|
+| SP-CF-LA | 89.3% | 96.8% | 71.5% |
+| SP-CF-AILTA | 97.4% | 95.0% | 95.3% |
+| SP-SR-LA | 71.7% | 51.8% | 71.8% ← random |
+| MP-CF | 99.5% | 96.3% | 99.4% |
+
+#### Ablation (`surrogate/ablation.py`)
+
+```python
+run_ablation(X, y, model_type, random_state) → pd.DataFrame
+```
+
+Trains three additional model variants per technique: full features, features
+excluding heuristic identity (`last_h*`), and features excluding heuristic
+class (`last_class*`). Compares faithfulness to reveal the contribution of
+categorical identity vs. functional class information.
+
 
 **Observed result:** 88.5% accuracy vs 57.5% baseline, ROC-AUC 95.3%.
 
@@ -733,6 +788,26 @@ interactions.
 400k samples this is prohibitively slow; the CLI subsamples to 2,000 rows by
 default (`--n-interactions 2000`).
 
+#### LIME Grid (`explain/lime_grid.py`)
+
+```python
+lime_grid(model, X, progress, n_grid=50, seed=42) → pd.DataFrame
+condition_frequency_table(grid_df) → pd.DataFrame
+save_condition_frequency_plot(freq_df, output_path)
+```
+
+Rather than explaining arbitrary instances, the LIME grid selects `n_grid`
+decision points evenly distributed across the search progress dimension
+(0.0 → 1.0). This gives a systematic view of how the local decision policy
+evolves from early to late search. `condition_frequency_table` aggregates the
+most common LIME conditions across all grid points, showing which feature
+thresholds recur most often.
+
+**Note:** Under severe class imbalance the local neighbourhood is dominated by
+the majority class and LIME weights approach zero. This affects single-point
+techniques with >95% acceptance rate. Check `lime_condition_frequency.csv`
+to confirm conditions are present before interpreting results.
+
 #### LIME Local (`explain/lime_local.py`)
 
 ```python
@@ -742,12 +817,9 @@ save_explanation_plot(explanation, output_path)
 
 `LimeTabularExplainer` fits a local linear model around a single decision
 (instance) by generating `num_samples` perturbed versions of that instance,
-predicting each, and fitting a weighted linear regression.
-
-The result is a local approximation: for this specific decision at this point in
-the search, these features pushed the surrogate towards accepting or rejecting.
-This is complementary to global SHAP — SHAP tells you what matters on average;
-LIME tells you what mattered for one specific decision.
+predicting each, and fitting a weighted linear regression. Used for one-off
+instance-level inspection; the LIME grid (above) is preferred for systematic
+analysis.
 
 ### 6.7 Stage 6: Figures (`figures/`)
 
@@ -763,7 +835,7 @@ Two figures produced by the `figures` CLI command:
 
 ### 6.8 CLI Entry Point (`cli.py`)
 
-All six pipeline stages are exposed as Click subcommands under the `xaisphh`
+All eight pipeline stages are exposed as Click subcommands under the `xaisphh`
 group. Each command is fully self-contained: it imports only what it needs
 (lazy imports to keep startup fast) and reads/writes files from the declared
 `--in` and `--out` paths.
@@ -858,7 +930,7 @@ ExperimentRunner.run()
     │
     ▼
 data/raw/traces/
-    trace_<technique>_<domain>_<inst>_<seed>.csv   (100k rows, 35 columns)
+    trace_<technique>_<domain>_<inst>_<seed>.csv   (100k rows, ~35 columns)
     manifest_<technique>_<domain>_<inst>_<seed>.json
     │
     ▼  python3 -m xaisphh.cli load
@@ -866,56 +938,76 @@ load_traces()
     → validate_schema()
     → cast dtypes
     → pd.concat()
+build_run_metadata()   → technique, domain, seed, stub flag per run
     ▼
-data/processed/traces.parquet  (all runs combined)
+data/interim/traces.parquet      (all runs combined)
+data/interim/run_metadata.parquet
     │
     ▼  python3 -m xaisphh.cli features
 build_feature_matrix()
     → select feat_* columns → X (fill NaN → -1.0)
     → df["accepted"].astype(int) → y
+    → technique label per row
     ▼
-data/processed/X.parquet   shape (N, 16)
-data/processed/y.parquet   shape (N,)
+data/processed/X.parquet          shape (N, 16)
+data/processed/y.parquet          shape (N,)
+data/processed/technique.parquet  shape (N,)
     │
     ├──▶  python3 -m xaisphh.cli yates
-    │         compute_log_returns()
+    │         compute_log_returns() with clipping
+    │         heuristic_stats()             → mean/median/IQR/trimmed per LLH
     │         percentile_rank(), bucket_objectives()
     │         heuristic_ranking(), footrule_distance()
+    │         acceptance_rate_by_progress()
     │         ▼
     │     results/yates/log_returns_by_heuristic.csv
     │     results/yates/percentile_ranks.csv
     │     results/yates/footrule_distances.csv
+    │     results/yates/acceptance_rate_by_progress.csv
     │
-    ▼  python3 -m xaisphh.cli train
-train_surrogate(X, y, "gradient_boosting")
-    → GradientBoostingClassifier.fit()
-faithfulness_score()
-    → 5-fold StratifiedKFold CV
-    → accuracy, ROC-AUC, F1, majority baseline
+    ▼  python3 -m xaisphh.cli train [--ablation]
+for each technique:
+    drop_constant_features(X_tech)
+    train_surrogate(X_filtered, y_tech, "gradient_boosting")
+        → GradientBoostingClassifier.fit()
+    faithfulness_score()
+        → 5-fold StratifiedKFold CV
+        → accuracy, ROC-AUC, F1, majority baseline
+    [--ablation: run_ablation() → identity/class variants]
     ▼
-results/models/surrogate.joblib
-results/models/faithfulness_metrics.json
+results/models/<technique>/surrogate.joblib
+results/models/<technique>/faithfulness_metrics.json
+results/models/<technique>/ablation_results.csv      (if --ablation)
+results/models/technique_comparison.csv
     │
     ▼  python3 -m xaisphh.cli explain
-compute_shap_values(model, X)       → TreeExplainer (400k samples)
-global_feature_importance()         → mean |SHAP| per feature
-save_summary_plot()                 → beeswarm PDF
-compute_interaction_values(model, X[:2000])  → 3D interaction array
-save_interaction_heatmap()          → heatmap PDF
-explain_instance() × n              → LIME Explanation objects
-save_explanation_plot()             → local bar chart PDFs
+for each technique:
+    compute_shap_values(model, X_tech)   → TreeExplainer
+    global_feature_importance()          → mean |SHAP| per feature
+    save_summary_plot()                  → beeswarm PDF
+    compute_interaction_values(model, X_tech[:2000])  → 3D interaction array
+    save_interaction_heatmap()           → heatmap PDF
+    lime_grid(model, X_tech, progress, n_grid=50)
+    condition_frequency_table()          → most frequent LIME conditions
     ▼
-results/explanations/shap_global_importance.csv
-results/explanations/shap_summary_plot.pdf
-results/explanations/shap_interaction_heatmap.pdf
-results/explanations/lime/lime_instance_<k>.pdf
+results/explanations/<technique>/shap_global_importance.csv
+results/explanations/<technique>/shap_summary_plot.pdf
+results/explanations/<technique>/shap_interaction_heatmap.pdf
+results/explanations/<technique>/lime_grid.csv
+results/explanations/<technique>/lime_condition_frequency.csv
+results/explanations/shap_comparison_by_technique.csv
     │
     ▼  python3 -m xaisphh.cli figures
-_plot_convergence()   → best_so_far over iteration per run
-_plot_importance()    → horizontal bar chart of mean |SHAP|
+_plot_convergence()     → best_so_far over iteration per run
+_plot_importance()      → horizontal bar chart of mean |SHAP| per technique
     ▼
 results/figures/convergence.pdf
-results/figures/shap_importance.pdf
+results/figures/shap_importance_<technique>.pdf
+    │
+    ▼  python3 -m xaisphh.cli report
+generate_report()       → assembles all outputs into paginated PDF
+    ▼
+results/report.pdf
 ```
 
 ---
@@ -946,6 +1038,7 @@ Valid names: `SP-CF-LA`, `SP-CF-AILTA`, `SP-CF-SA`, `SP-SR-LA`, `SP-SR-AILTA`,
 | `decayRate` | SA | 0.99 | SA geometric cooling factor per step |
 | `totalIterations` | AILTA | 100000 | Estimated iterations for AILTA decay calibration |
 | `populationSize` | MP | 10 | Number of individuals in the population |
+| `budgetScaling` | MP | (none) | Set to `per_member` to multiply budgetValue by populationSize |
 | `wallClockCapMs` | All (iter budget) | 3600000 | Safety cap for HyFlex timer (1 hour) |
 
 ### Domain Names and Instance Indices
@@ -957,9 +1050,15 @@ All CHeSC domains have 10 instances each (indices 0–9):
 
 | Command | Key options |
 |---------|------------|
-| `load` | `--traces DIR` `--out DIR` |
+| `load` | `--traces DIR` `--out DIR` `--allow-mixed` |
 | `features` | `--interim DIR` `--out DIR` `--keep-scores` |
-| `yates` | `--interim DIR` `--out DIR` |
-| `train` | `--processed DIR` `--out DIR` `--model-type [gb\|rf\|lr]` `--seed INT` |
-| `explain` | `--results DIR` `--processed DIR` `--out DIR` `--n-lime-instances INT` `--n-interactions INT` |
+| `yates` | `--interim DIR` `--out DIR` `--clip-low FLOAT` `--clip-high FLOAT` `--divergence-factor FLOAT` |
+| `train` | `--processed DIR` `--out DIR` `--model-type [gradient_boosting\|random_forest\|logistic_regression]` `--seed INT` `--ablation` `--pooled` |
+| `explain` | `--results DIR` `--processed DIR` `--out DIR` `--n-lime-grid INT` `--n-interactions INT` `--pooled` `--seed INT` |
 | `figures` | `--results DIR` `--interim DIR` `--out DIR` |
+| `stats` | `--objectives CSV` `--out CSV` |
+| `report` | `--interim DIR` `--processed DIR` `--models DIR` `--explanations DIR` `--out PDF` |
+
+> **Note on paths:** `load` outputs to `data/interim/` (not `data/processed/`).
+> `features` and `yates` both read from `--interim data/interim/`.
+> `train` and `explain` read from `--processed data/processed/`.

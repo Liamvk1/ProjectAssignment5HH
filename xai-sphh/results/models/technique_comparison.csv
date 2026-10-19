@@ -1,5 +1,0 @@
-technique,accuracy,roc_auc,majority_baseline,n_features_used,dropped_features
-MP-CF,0.98988,0.9555524614845394,0.98656,15,feat_llh_count
-SP-CF-AILTA,0.97431,0.9496189207151191,0.95315,13,feat_llh_count; feat_pop_diversity; feat_pop_target_rank
-SP-CF-LA,0.8934200000000001,0.9677126552074048,0.71543,13,feat_llh_count; feat_pop_diversity; feat_pop_target_rank
-SP-SR-LA,0.71738,0.5174546680301075,0.71761,13,feat_llh_count; feat_pop_diversity; feat_pop_target_rank

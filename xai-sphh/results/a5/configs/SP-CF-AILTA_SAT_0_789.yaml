@@ -1,0 +1,9 @@
+techniqueName: SP-CF-AILTA
+domain: SAT
+instanceIndex: 0
+seed: 789
+budgetType: iterations
+budgetValue: 50000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  totalIterations: 50000

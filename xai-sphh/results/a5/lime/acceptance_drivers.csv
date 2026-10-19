@@ -1,0 +1,361 @@
+domain,technique,condition,feature,count,mean_weight,positive_fraction
+SAT,SP-CF-LA,feat_gap_to_best <= 0.00,feat_gap_to_best,435,0.024392,0.6805
+SAT,SP-CF-LA,feat_obj_norm <= 0.00,feat_obj_norm,414,0.024713,0.6329
+SAT,SP-CF-LA,feat_last_class3 <= 0.00,feat_last_class3,169,6.2e-05,0.5207
+SAT,SP-CF-LA,feat_last_h3 <= 2.00,feat_last_h3,144,-0.010675,0.5069
+SAT,SP-CF-LA,0.00 < feat_last_class1 <= 2.00,feat_last_class1,129,0.067493,1.0
+SAT,SP-CF-LA,5.00 < feat_last_h1 <= 8.00,feat_last_h1,125,0.117421,0.88
+SAT,SP-CF-LA,feat_last_h2 <= 2.00,feat_last_h2,121,0.015889,0.5289
+SAT,SP-CF-LA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,117,0.0086,0.7863
+SAT,SP-CF-LA,5.00 < feat_last_h2 <= 8.00,feat_last_h2,116,0.028054,0.7328
+SAT,SP-CF-LA,5.00 < feat_last_h3 <= 8.00,feat_last_h3,114,0.0517,0.8947
+SAT,SP-CF-LA,feat_progress <= 0.25,feat_progress,103,0.037797,0.9515
+SAT,SP-CF-LA,2.00 < feat_last_h3 <= 5.00,feat_last_h3,102,0.042918,0.6373
+SAT,SP-CF-LA,2.00 < feat_last_h2 <= 5.00,feat_last_h2,96,0.027531,0.6875
+SAT,SP-CF-LA,feat_last_class1 > 2.00,feat_last_class1,94,0.033057,0.7447
+SAT,SP-CF-LA,0.00 < feat_last_class2 <= 2.00,feat_last_class2,90,0.009334,0.7222
+SAT,SP-CF-LA,feat_last_h1 > 8.00,feat_last_h1,85,0.100607,0.8824
+SAT,SP-CF-LA,feat_last_class2 > 2.00,feat_last_class2,83,0.011408,0.6024
+SAT,SP-CF-LA,0.00 < feat_last_class3 <= 2.00,feat_last_class3,83,0.012373,0.7831
+SAT,SP-CF-LA,0.28 < feat_mean_logret_50 <= 0.30,feat_mean_logret_50,33,0.147216,1.0
+SAT,SP-CF-LA,feat_mean_logret_50 > 0.35,feat_mean_logret_50,28,0.061519,1.0
+SAT,SP-CF-AILTA,2.00 < feat_last_h2 <= 7.00,feat_last_h2,158,0.001676,0.5316
+SAT,SP-CF-AILTA,feat_last_class2 <= 0.00,feat_last_class2,145,0.000952,0.5448
+SAT,SP-CF-AILTA,2.00 < feat_last_h3 <= 7.00,feat_last_h3,143,0.005609,0.6643
+SAT,SP-CF-AILTA,feat_last_class3 <= 0.00,feat_last_class3,139,0.002548,0.5755
+SAT,SP-CF-AILTA,feat_progress <= 0.25,feat_progress,130,0.262764,1.0
+SAT,SP-CF-AILTA,feat_gap_to_best <= 0.00,feat_gap_to_best,123,0.002762,0.5935
+SAT,SP-CF-AILTA,0.25 < feat_progress <= 0.50,feat_progress,120,0.240028,1.0
+SAT,SP-CF-AILTA,feat_obj_norm <= 0.00,feat_obj_norm,117,0.003615,0.6239
+SAT,SP-CF-AILTA,1.00 < feat_last_class2 <= 3.00,feat_last_class2,117,0.003286,0.5726
+SAT,SP-CF-AILTA,0.04 < feat_improve_rate_50 <= 0.06,feat_improve_rate_50,99,0.010303,0.7071
+SAT,SP-CF-AILTA,feat_improve_rate_50 > 0.06,feat_improve_rate_50,83,0.014185,0.7108
+SAT,SP-CF-AILTA,0.00 < feat_obj_norm <= 0.00,feat_obj_norm,79,0.005667,0.6329
+SAT,SP-CF-AILTA,feat_last_h1 > 8.00,feat_last_h1,74,0.015619,0.7838
+SAT,SP-CF-AILTA,0.02 < feat_improve_rate_50 <= 0.04,feat_improve_rate_50,64,-0.003838,0.5625
+SAT,SP-CF-AILTA,feat_mean_logret_50 > 0.04,feat_mean_logret_50,62,0.032561,0.9677
+SAT,SP-CF-AILTA,0.00 < feat_last_class3 <= 1.00,feat_last_class3,58,0.001054,0.5862
+SAT,SP-CF-AILTA,feat_gap_to_best > 0.01,feat_gap_to_best,33,0.001073,0.5758
+SAT,SP-CF-AILTA,0.00 < feat_obj_norm <= 0.01,feat_obj_norm,31,6.3e-05,0.5484
+SAT,SP-CF-AILTA,7.00 < feat_last_h1 <= 8.00,feat_last_h1,30,0.004994,0.6333
+SAT,SP-CF-AILTA,0.00 < feat_gap_to_best <= 0.01,feat_gap_to_best,28,0.003895,0.6429
+SAT,MP-CF,feat_progress <= 0.25,feat_progress,126,0.048326,0.6984
+SAT,MP-CF,feat_progress > 0.75,feat_progress,110,0.063537,0.7727
+SAT,MP-CF,feat_last_class1 <= 0.00,feat_last_class1,104,-1.6e-05,0.5192
+SAT,MP-CF,feat_last_class2 <= 0.00,feat_last_class2,101,0.001665,0.5545
+SAT,MP-CF,feat_gap_to_best > 0.01,feat_gap_to_best,75,0.145383,0.8667
+SAT,MP-CF,feat_improve_rate_50 > 0.00,feat_improve_rate_50,75,0.192159,0.88
+SAT,MP-CF,0.00 < feat_gap_to_best <= 0.01,feat_gap_to_best,73,0.037993,0.6164
+SAT,MP-CF,feat_obj_norm > 0.01,feat_obj_norm,71,0.066336,0.7746
+SAT,MP-CF,feat_pop_diversity > 0.05,feat_pop_diversity,53,0.308249,0.9434
+SAT,MP-CF,0.00 < feat_last_class1 <= 2.00,feat_last_class1,43,0.000728,0.5349
+SAT,MP-CF,feat_last_h3 > 7.00,feat_last_h3,42,0.00503,0.5952
+SAT,MP-CF,5.00 < feat_last_h3 <= 8.00,feat_last_h3,39,0.000947,0.5385
+SAT,MP-CF,feat_last_class2 > 2.00,feat_last_class2,39,0.000167,0.5385
+SAT,MP-CF,0.01 < feat_obj_norm <= 0.01,feat_obj_norm,39,0.00493,0.5128
+SAT,MP-CF,feat_pop_target_rank > 7.00,feat_pop_target_rank,37,0.006925,0.6757
+SAT,MP-CF,feat_last_h1 > 7.00,feat_last_h1,29,0.000486,0.5172
+SAT,MP-CF,feat_gap_to_best > 0.02,feat_gap_to_best,29,0.159667,0.8966
+SAT,MP-CF,5.00 < feat_last_h2 <= 8.00,feat_last_h2,28,0.002358,0.5357
+SAT,MP-CF,feat_obj_norm > 0.02,feat_obj_norm,25,0.024159,0.8
+SAT,MP-CF,feat_pop_diversity > 0.03,feat_pop_diversity,24,0.151723,1.0
+BinPacking,SP-CF-LA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,262,0.015418,0.5153
+BinPacking,SP-CF-LA,feat_gap_to_best <= 0.00,feat_gap_to_best,180,0.006407,0.6778
+BinPacking,SP-CF-LA,0.00 < feat_last_class1 <= 2.00,feat_last_class1,151,0.045315,0.5894
+BinPacking,SP-CF-LA,feat_last_h3 <= 2.00,feat_last_h3,144,0.098243,0.7708
+BinPacking,SP-CF-LA,feat_last_h1 <= 2.00,feat_last_h1,138,0.045783,0.7899
+BinPacking,SP-CF-LA,feat_last_class2 <= 0.00,feat_last_class2,135,0.022124,0.6963
+BinPacking,SP-CF-LA,3.00 < feat_last_h3 <= 6.00,feat_last_h3,133,0.067361,0.7293
+BinPacking,SP-CF-LA,3.00 < feat_last_h2 <= 6.00,feat_last_h2,132,0.164512,0.9167
+BinPacking,SP-CF-LA,3.00 < feat_last_h1 <= 6.00,feat_last_h1,128,0.008231,0.5156
+BinPacking,SP-CF-LA,feat_last_class3 <= 0.00,feat_last_class3,120,0.00589,0.6
+BinPacking,SP-CF-LA,feat_last_h2 <= 2.00,feat_last_h2,118,-0.046795,0.5339
+BinPacking,SP-CF-LA,feat_progress <= 0.25,feat_progress,114,0.017594,0.7719
+BinPacking,SP-CF-LA,2.00 < feat_last_class1 <= 3.00,feat_last_class1,103,0.115778,0.9417
+BinPacking,SP-CF-LA,2.00 < feat_last_class3 <= 3.00,feat_last_class3,71,0.003925,0.507
+BinPacking,SP-CF-LA,feat_obj_norm > 0.00,feat_obj_norm,59,-0.017523,0.5085
+BinPacking,SP-CF-LA,0.04 < feat_mean_logret_50 <= 0.05,feat_mean_logret_50,54,0.003226,0.5185
+BinPacking,SP-CF-LA,feat_improve_rate_50 > 0.02,feat_improve_rate_50,45,0.019986,0.7556
+BinPacking,SP-CF-LA,2.00 < feat_last_h3 <= 3.00,feat_last_h3,40,0.103096,0.775
+BinPacking,SP-CF-LA,feat_last_h3 <= 1.00,feat_last_h3,39,0.135356,0.8205
+BinPacking,SP-CF-LA,2.00 < feat_last_h2 <= 3.00,feat_last_h2,37,-0.013605,0.8108
+BinPacking,SP-CF-AILTA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,364,0.129181,1.0
+BinPacking,SP-CF-AILTA,feat_last_class3 <= 0.00,feat_last_class3,202,0.063962,1.0
+BinPacking,SP-CF-AILTA,feat_last_class2 <= 0.00,feat_last_class2,193,0.052042,1.0
+BinPacking,SP-CF-AILTA,3.00 < feat_last_h2 <= 6.00,feat_last_h2,190,0.097194,1.0
+BinPacking,SP-CF-AILTA,3.00 < feat_last_h1 <= 6.00,feat_last_h1,176,0.04006,1.0
+BinPacking,SP-CF-AILTA,3.00 < feat_last_h3 <= 6.00,feat_last_h3,174,0.092069,1.0
+BinPacking,SP-CF-AILTA,feat_last_h3 <= 2.00,feat_last_h3,149,0.012393,0.651
+BinPacking,SP-CF-AILTA,feat_progress <= 0.25,feat_progress,130,0.113033,1.0
+BinPacking,SP-CF-AILTA,feat_mean_logret_50 > 0.03,feat_mean_logret_50,115,0.094211,1.0
+BinPacking,SP-CF-AILTA,feat_last_class1 <= 0.00,feat_last_class1,114,-0.000516,0.5789
+BinPacking,SP-CF-AILTA,0.25 < feat_progress <= 0.50,feat_progress,112,0.084442,1.0
+BinPacking,SP-CF-AILTA,0.02 < feat_mean_logret_50 <= 0.03,feat_mean_logret_50,110,0.071429,1.0
+BinPacking,SP-CF-AILTA,2.00 < feat_last_class1 <= 3.00,feat_last_class1,108,0.049626,0.9907
+BinPacking,SP-CF-AILTA,feat_improve_rate_50 > 0.20,feat_improve_rate_50,65,0.025268,1.0
+BinPacking,SP-CF-AILTA,0.01 < feat_mean_logret_50 <= 0.02,feat_mean_logret_50,65,0.008391,0.6769
+BinPacking,SP-CF-AILTA,feat_last_h2 > 6.00,feat_last_h2,55,0.067405,1.0
+BinPacking,SP-CF-AILTA,feat_obj_norm > 0.02,feat_obj_norm,50,0.012177,0.76
+BinPacking,SP-CF-AILTA,2.00 < feat_last_h1 <= 3.00,feat_last_h1,45,0.027295,0.9333
+BinPacking,SP-CF-AILTA,0.14 < feat_improve_rate_50 <= 0.20,feat_improve_rate_50,43,0.019102,1.0
+BinPacking,SP-CF-AILTA,feat_last_h3 > 6.00,feat_last_h3,42,0.008918,0.6667
+BinPacking,MP-CF,feat_last_class2 <= 0.00,feat_last_class2,132,0.022484,0.7879
+BinPacking,MP-CF,feat_last_h1 <= 1.00,feat_last_h1,125,0.025853,0.76
+BinPacking,MP-CF,feat_progress <= 0.25,feat_progress,124,0.094604,0.7984
+BinPacking,MP-CF,feat_progress > 0.75,feat_progress,118,0.069392,0.6017
+BinPacking,MP-CF,feat_last_h2 <= 1.00,feat_last_h2,118,0.004461,0.661
+BinPacking,MP-CF,feat_gap_to_best > 0.04,feat_gap_to_best,90,0.190961,0.9333
+BinPacking,MP-CF,feat_pop_target_rank <= 5.00,feat_pop_target_rank,85,0.008837,0.5882
+BinPacking,MP-CF,feat_mean_logret_50 <= 0.06,feat_mean_logret_50,78,0.040298,0.9744
+BinPacking,MP-CF,1.00 < feat_last_h3 <= 3.00,feat_last_h3,70,0.034067,0.8571
+BinPacking,MP-CF,feat_pop_diversity > 0.11,feat_pop_diversity,65,0.202111,0.7538
+BinPacking,MP-CF,feat_last_h3 <= 1.00,feat_last_h3,55,0.011154,0.6364
+BinPacking,MP-CF,3.00 < feat_last_h1 <= 5.00,feat_last_h1,53,0.019516,0.5472
+BinPacking,MP-CF,feat_last_class3 > 2.25,feat_last_class3,49,0.002575,0.5714
+BinPacking,MP-CF,feat_last_class3 <= 0.00,feat_last_class3,44,0.000735,0.5227
+BinPacking,MP-CF,1.50 < feat_last_class3 <= 2.25,feat_last_class3,43,0.004617,0.5581
+BinPacking,MP-CF,feat_obj_norm <= 0.01,feat_obj_norm,36,0.046591,0.8889
+BinPacking,MP-CF,feat_last_class1 > 2.25,feat_last_class1,36,0.015376,0.6111
+BinPacking,MP-CF,feat_improve_rate_50 > 0.00,feat_improve_rate_50,35,0.062338,0.9429
+BinPacking,MP-CF,feat_pop_target_rank > 8.00,feat_pop_target_rank,35,0.001042,0.5429
+BinPacking,MP-CF,feat_obj_norm > 0.03,feat_obj_norm,25,0.332203,1.0
+FlowShop,SP-CF-LA,feat_gap_to_best <= 0.00,feat_gap_to_best,424,0.001222,0.5024
+FlowShop,SP-CF-LA,feat_obj_norm <= 0.00,feat_obj_norm,404,0.001281,0.5074
+FlowShop,SP-CF-LA,1.00 < feat_last_class2 <= 3.00,feat_last_class2,201,0.000815,0.5224
+FlowShop,SP-CF-LA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,195,0.005361,0.5949
+FlowShop,SP-CF-LA,0.01 < feat_mean_logret_50 <= 0.01,feat_mean_logret_50,158,0.028748,1.0
+FlowShop,SP-CF-LA,4.00 < feat_last_h2 <= 8.00,feat_last_h2,138,0.013209,0.6667
+FlowShop,SP-CF-LA,feat_last_h1 <= 4.00,feat_last_h1,134,0.008029,0.5522
+FlowShop,SP-CF-LA,4.00 < feat_last_h3 <= 8.00,feat_last_h3,127,0.031111,0.811
+FlowShop,SP-CF-LA,feat_last_h3 <= 4.00,feat_last_h3,120,0.032462,0.9917
+FlowShop,SP-CF-LA,0.00 < feat_last_class1 <= 1.00,feat_last_class1,118,0.005418,0.6102
+FlowShop,SP-CF-LA,1.00 < feat_last_class3 <= 3.00,feat_last_class3,116,0.003462,0.6552
+FlowShop,SP-CF-LA,feat_last_class1 <= 0.00,feat_last_class1,113,0.029959,0.9027
+FlowShop,SP-CF-LA,feat_progress <= 0.25,feat_progress,105,0.027658,0.9048
+FlowShop,SP-CF-LA,feat_last_h1 > 11.00,feat_last_h1,103,-0.003523,0.5437
+FlowShop,SP-CF-LA,feat_last_h2 <= 4.00,feat_last_h2,103,0.03549,0.9709
+FlowShop,SP-CF-LA,feat_mean_logret_50 > 0.02,feat_mean_logret_50,89,0.062949,1.0
+FlowShop,SP-CF-LA,8.00 < feat_last_h1 <= 11.00,feat_last_h1,88,0.065723,0.6364
+FlowShop,SP-CF-LA,feat_iters_since_accept > 1.00,feat_iters_since_accept,84,-0.000989,0.5595
+FlowShop,SP-CF-LA,0.01 < feat_mean_logret_50 <= 0.02,feat_mean_logret_50,73,0.039277,1.0
+FlowShop,SP-CF-LA,0.25 < feat_progress <= 0.50,feat_progress,65,0.005839,0.5692
+FlowShop,SP-CF-AILTA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,432,0.021834,0.9213
+FlowShop,SP-CF-AILTA,1.00 < feat_last_class1 <= 3.00,feat_last_class1,294,0.011419,0.9592
+FlowShop,SP-CF-AILTA,1.00 < feat_last_class3 <= 3.00,feat_last_class3,154,0.001992,0.6558
+FlowShop,SP-CF-AILTA,feat_progress <= 0.25,feat_progress,130,0.060877,1.0
+FlowShop,SP-CF-AILTA,0.25 < feat_progress <= 0.50,feat_progress,120,0.061437,1.0
+FlowShop,SP-CF-AILTA,0.50 < feat_progress <= 0.75,feat_progress,120,0.019755,0.9
+FlowShop,SP-CF-AILTA,0.00 < feat_mean_logret_50 <= 0.00,feat_mean_logret_50,117,0.020536,0.9915
+FlowShop,SP-CF-AILTA,-0.00 < feat_mean_logret_50 <= 0.00,feat_mean_logret_50,101,0.010111,0.8317
+FlowShop,SP-CF-AILTA,feat_last_class2 <= 1.00,feat_last_class2,98,0.001342,0.5408
+FlowShop,SP-CF-AILTA,feat_last_h2 <= 8.00,feat_last_h2,93,0.004289,0.8495
+FlowShop,SP-CF-AILTA,feat_last_h3 <= 8.00,feat_last_h3,84,0.009044,0.9643
+FlowShop,SP-CF-AILTA,feat_improve_rate_50 > 0.10,feat_improve_rate_50,72,0.029197,0.9028
+FlowShop,SP-CF-AILTA,feat_last_h1 > 11.00,feat_last_h1,68,0.006047,0.8382
+FlowShop,SP-CF-AILTA,8.00 < feat_last_h1 <= 9.00,feat_last_h1,67,0.008963,0.9254
+FlowShop,SP-CF-AILTA,0.02 < feat_improve_rate_50 <= 0.10,feat_improve_rate_50,63,0.031766,1.0
+FlowShop,SP-CF-AILTA,9.00 < feat_last_h1 <= 11.00,feat_last_h1,56,0.009481,0.875
+FlowShop,SP-CF-AILTA,8.00 < feat_last_h3 <= 9.00,feat_last_h3,50,-0.001307,0.52
+FlowShop,SP-CF-AILTA,8.00 < feat_last_h1 <= 10.00,feat_last_h1,47,0.012745,1.0
+FlowShop,SP-CF-AILTA,feat_obj_norm <= 0.02,feat_obj_norm,46,0.00141,0.5217
+FlowShop,SP-CF-AILTA,feat_gap_to_best <= 0.01,feat_gap_to_best,44,0.000829,0.5455
+FlowShop,MP-CF,feat_progress <= 0.25,feat_progress,109,0.012581,0.6789
+FlowShop,MP-CF,1.00 < feat_last_class2 <= 3.00,feat_last_class2,104,0.001232,0.5962
+FlowShop,MP-CF,1.00 < feat_last_class1 <= 3.00,feat_last_class1,96,0.007539,0.5625
+FlowShop,MP-CF,4.00 < feat_last_h2 <= 8.00,feat_last_h2,77,0.000557,0.5065
+FlowShop,MP-CF,feat_last_class3 <= 0.00,feat_last_class3,77,0.000581,0.5195
+FlowShop,MP-CF,0.00 < feat_last_class2 <= 1.00,feat_last_class2,71,0.001233,0.6338
+FlowShop,MP-CF,feat_last_h1 > 11.00,feat_last_h1,69,0.000849,0.5942
+FlowShop,MP-CF,4.00 < feat_last_h3 <= 8.00,feat_last_h3,67,0.000506,0.5224
+FlowShop,MP-CF,0.00 < feat_last_class3 <= 1.00,feat_last_class3,65,-0.000516,0.5077
+FlowShop,MP-CF,feat_last_h2 > 11.00,feat_last_h2,65,-0.0003,0.5231
+FlowShop,MP-CF,8.00 < feat_last_h2 <= 11.00,feat_last_h2,64,0.00019,0.5312
+FlowShop,MP-CF,feat_last_h3 > 11.00,feat_last_h3,59,0.000808,0.5254
+FlowShop,MP-CF,8.00 < feat_last_h3 <= 11.00,feat_last_h3,56,0.001231,0.5893
+FlowShop,MP-CF,0.01 < feat_mean_logret_50 <= 0.02,feat_mean_logret_50,50,0.000821,0.54
+FlowShop,MP-CF,feat_mean_logret_50 > 0.02,feat_mean_logret_50,45,0.000847,0.5333
+FlowShop,MP-CF,feat_gap_to_best > 0.00,feat_gap_to_best,43,0.400671,0.814
+FlowShop,MP-CF,feat_obj_norm > 0.00,feat_obj_norm,42,0.368424,0.7143
+FlowShop,MP-CF,feat_pop_target_rank > 0.00,feat_pop_target_rank,36,0.462806,0.8333
+FlowShop,MP-CF,feat_pop_diversity > 0.00,feat_pop_diversity,35,0.09678,0.5429
+FlowShop,MP-CF,feat_improve_rate_50 > 0.00,feat_improve_rate_50,14,0.073014,0.7143
+TSP,SP-CF-LA,feat_obj_norm <= 0.00,feat_obj_norm,441,0.003909,0.5283
+TSP,SP-CF-LA,feat_gap_to_best <= 0.00,feat_gap_to_best,441,0.026815,0.6349
+TSP,SP-CF-LA,feat_improve_rate_50 <= 0.00,feat_improve_rate_50,412,0.035831,0.7451
+TSP,SP-CF-LA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,373,0.049747,0.8445
+TSP,SP-CF-LA,feat_last_class3 <= 1.00,feat_last_class3,211,0.022523,0.8389
+TSP,SP-CF-LA,feat_last_class2 <= 1.00,feat_last_class2,183,0.005251,0.5683
+TSP,SP-CF-LA,feat_last_h2 <= 7.00,feat_last_h2,140,0.018465,0.7357
+TSP,SP-CF-LA,feat_last_h3 <= 7.00,feat_last_h3,132,0.010694,0.6212
+TSP,SP-CF-LA,1.00 < feat_last_class1 <= 3.00,feat_last_class1,127,0.031229,0.7795
+TSP,SP-CF-LA,0.25 < feat_progress <= 0.50,feat_progress,120,0.110979,0.9
+TSP,SP-CF-LA,0.50 < feat_progress <= 0.75,feat_progress,107,0.124777,0.9252
+TSP,SP-CF-LA,feat_last_h1 <= 7.00,feat_last_h1,100,0.006019,0.68
+TSP,SP-CF-LA,0.00 < feat_mean_logret_50 <= 0.00,feat_mean_logret_50,90,0.01876,0.7556
+TSP,SP-CF-LA,feat_mean_logret_50 > 0.01,feat_mean_logret_50,90,0.075178,1.0
+TSP,SP-CF-LA,0.00 < feat_mean_logret_50 <= 0.01,feat_mean_logret_50,83,0.035212,0.9759
+TSP,SP-CF-LA,9.00 < feat_last_h2 <= 11.00,feat_last_h2,76,0.000627,0.5658
+TSP,SP-CF-LA,7.00 < feat_last_h2 <= 9.00,feat_last_h2,57,0.005041,0.614
+TSP,SP-CF-LA,feat_last_h1 > 11.00,feat_last_h1,46,0.007478,0.6522
+TSP,SP-CF-LA,feat_mean_logret_50 > 0.00,feat_mean_logret_50,22,0.048976,1.0
+TSP,SP-CF-LA,feat_iters_since_improve > 6340.25,feat_iters_since_improve,13,0.059804,1.0
+TSP,SP-CF-AILTA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,409,0.019168,0.7188
+TSP,SP-CF-AILTA,feat_last_class2 <= 1.00,feat_last_class2,176,0.008353,0.7273
+TSP,SP-CF-AILTA,feat_last_class3 <= 1.00,feat_last_class3,171,0.01927,0.7018
+TSP,SP-CF-AILTA,1.00 < feat_last_class1 <= 3.00,feat_last_class1,150,0.013186,0.74
+TSP,SP-CF-AILTA,0.00 < feat_gap_to_best <= 0.00,feat_gap_to_best,135,0.010925,0.7037
+TSP,SP-CF-AILTA,feat_obj_norm <= 0.00,feat_obj_norm,134,0.004389,0.6567
+TSP,SP-CF-AILTA,feat_last_h2 <= 7.00,feat_last_h2,131,0.011536,0.6412
+TSP,SP-CF-AILTA,0.00 < feat_mean_logret_50 <= 0.00,feat_mean_logret_50,130,0.007881,0.6769
+TSP,SP-CF-AILTA,0.25 < feat_progress <= 0.50,feat_progress,120,0.185584,1.0
+TSP,SP-CF-AILTA,0.50 < feat_progress <= 0.75,feat_progress,115,0.100874,0.6609
+TSP,SP-CF-AILTA,0.00 < feat_obj_norm <= 0.00,feat_obj_norm,108,0.005312,0.6574
+TSP,SP-CF-AILTA,7.00 < feat_last_h1 <= 9.00,feat_last_h1,104,0.02665,0.7308
+TSP,SP-CF-AILTA,9.00 < feat_last_h1 <= 11.00,feat_last_h1,96,0.01821,0.6875
+TSP,SP-CF-AILTA,9.00 < feat_last_h3 <= 11.00,feat_last_h3,86,-0.002996,0.5349
+TSP,SP-CF-AILTA,9.00 < feat_last_h2 <= 11.00,feat_last_h2,86,0.001313,0.5465
+TSP,SP-CF-AILTA,7.00 < feat_last_h3 <= 9.00,feat_last_h3,78,0.004931,0.6154
+TSP,SP-CF-AILTA,feat_mean_logret_50 > 0.00,feat_mean_logret_50,59,0.034049,0.8983
+TSP,SP-CF-AILTA,feat_mean_logret_50 > 0.01,feat_mean_logret_50,50,0.05635,1.0
+TSP,SP-CF-AILTA,feat_improve_rate_50 > 0.00,feat_improve_rate_50,45,0.109739,1.0
+TSP,SP-CF-AILTA,0.00 < feat_mean_logret_50 <= 0.01,feat_mean_logret_50,43,0.021923,0.907
+TSP,MP-CF,feat_last_h2 <= 6.00,feat_last_h2,149,0.012184,0.7315
+TSP,MP-CF,feat_last_h1 <= 6.00,feat_last_h1,140,0.012971,0.7357
+TSP,MP-CF,feat_progress > 0.75,feat_progress,130,0.047264,0.6
+TSP,MP-CF,feat_progress <= 0.25,feat_progress,129,0.08073,0.6047
+TSP,MP-CF,feat_mean_logret_50 <= 0.00,feat_mean_logret_50,118,0.012992,0.5339
+TSP,MP-CF,feat_last_h3 <= 6.00,feat_last_h3,106,0.01358,0.5943
+TSP,MP-CF,7.00 < feat_last_h3 <= 8.00,feat_last_h3,105,-0.002057,0.5048
+TSP,MP-CF,feat_gap_to_best > 0.00,feat_gap_to_best,105,0.184057,0.6476
+TSP,MP-CF,feat_obj_norm > 0.00,feat_obj_norm,103,0.328513,0.9126
+TSP,MP-CF,feat_mean_logret_50 > 0.01,feat_mean_logret_50,95,0.006531,0.5158
+TSP,MP-CF,feat_pop_diversity > 0.01,feat_pop_diversity,88,0.136215,0.7727
+TSP,MP-CF,6.00 < feat_pop_target_rank <= 8.00,feat_pop_target_rank,64,0.013124,0.7812
+TSP,MP-CF,feat_pop_diversity <= 0.00,feat_pop_diversity,56,0.035132,0.5893
+TSP,MP-CF,feat_pop_target_rank > 8.00,feat_pop_target_rank,48,0.004944,0.5833
+TSP,MP-CF,feat_improve_rate_50 > 0.00,feat_improve_rate_50,42,0.020545,0.619
+TSP,MP-CF,4.00 < feat_pop_target_rank <= 7.00,feat_pop_target_rank,24,0.060415,0.7917
+TSP,MP-CF,feat_iters_since_accept > 870.00,feat_iters_since_accept,14,0.060972,1.0
+TSP,MP-CF,feat_iters_since_accept > 707.25,feat_iters_since_accept,13,0.071033,1.0
+TSP,MP-CF,feat_iters_since_accept > 737.00,feat_iters_since_accept,13,0.254161,1.0
+TSP,MP-CF,feat_iters_since_improve <= 620.00,feat_iters_since_improve,13,0.044346,1.0
+VRP,SP-CF-LA,feat_gap_to_best <= 0.00,feat_gap_to_best,289,0.011162,0.6886
+VRP,SP-CF-LA,feat_obj_norm <= 0.00,feat_obj_norm,262,0.005635,0.6565
+VRP,SP-CF-LA,0.00 < feat_mean_logret_50 <= 0.00,feat_mean_logret_50,177,0.026112,0.8927
+VRP,SP-CF-LA,2.00 < feat_last_h1 <= 5.00,feat_last_h1,139,0.005411,0.518
+VRP,SP-CF-LA,feat_last_class3 <= 0.00,feat_last_class3,126,0.004908,0.627
+VRP,SP-CF-LA,feat_last_class1 <= 0.00,feat_last_class1,122,0.038001,0.8525
+VRP,SP-CF-LA,feat_mean_logret_50 > 0.00,feat_mean_logret_50,116,0.04641,0.9914
+VRP,SP-CF-LA,feat_iters_since_accept > 0.00,feat_iters_since_accept,113,0.024624,0.9381
+VRP,SP-CF-LA,feat_progress > 0.75,feat_progress,107,-0.038208,0.5234
+VRP,SP-CF-LA,2.00 < feat_last_h3 <= 5.00,feat_last_h3,105,0.014239,0.7905
+VRP,SP-CF-LA,feat_last_h2 <= 2.00,feat_last_h2,104,0.015948,0.6827
+VRP,SP-CF-LA,feat_last_class2 <= 0.00,feat_last_class2,100,0.00761,0.6
+VRP,SP-CF-LA,5.00 < feat_last_h1 <= 7.00,feat_last_h1,97,0.004761,0.6701
+VRP,SP-CF-LA,0.50 < feat_progress <= 0.75,feat_progress,96,0.033307,0.875
+VRP,SP-CF-LA,0.25 < feat_progress <= 0.50,feat_progress,88,0.033251,0.8636
+VRP,SP-CF-LA,feat_last_h3 > 7.00,feat_last_h3,84,-0.001645,0.5595
+VRP,SP-CF-LA,feat_last_h1 > 7.00,feat_last_h1,76,-0.000839,0.8158
+VRP,SP-CF-LA,5.00 < feat_last_h3 <= 7.00,feat_last_h3,47,0.009265,0.7234
+VRP,SP-CF-LA,feat_gap_to_best <= 0.02,feat_gap_to_best,23,0.01071,0.9565
+VRP,SP-CF-LA,feat_improve_rate_50 > 0.00,feat_improve_rate_50,16,0.011366,0.625
+VRP,SP-CF-AILTA,1.00 < feat_last_class1 <= 3.00,feat_last_class1,257,0.027011,0.7121
+VRP,SP-CF-AILTA,1.00 < feat_last_class3 <= 3.00,feat_last_class3,228,0.001752,0.5658
+VRP,SP-CF-AILTA,1.00 < feat_last_class2 <= 3.00,feat_last_class2,226,0.001221,0.5398
+VRP,SP-CF-AILTA,feat_last_h3 <= 4.00,feat_last_h3,154,0.000806,0.5065
+VRP,SP-CF-AILTA,feat_progress <= 0.25,feat_progress,126,0.142938,0.9524
+VRP,SP-CF-AILTA,0.25 < feat_progress <= 0.50,feat_progress,118,0.141346,1.0
+VRP,SP-CF-AILTA,0.50 < feat_progress <= 0.75,feat_progress,117,0.121196,1.0
+VRP,SP-CF-AILTA,5.00 < feat_last_h1 <= 8.00,feat_last_h1,113,0.00398,0.6814
+VRP,SP-CF-AILTA,feat_mean_logret_50 > 0.00,feat_mean_logret_50,108,0.006456,0.713
+VRP,SP-CF-AILTA,5.00 < feat_last_h3 <= 8.00,feat_last_h3,104,0.000668,0.5865
+VRP,SP-CF-AILTA,5.00 < feat_last_h2 <= 8.00,feat_last_h2,100,0.001689,0.65
+VRP,SP-CF-AILTA,feat_gap_to_best <= 0.01,feat_gap_to_best,95,0.005134,0.6526
+VRP,SP-CF-AILTA,-0.00 < feat_mean_logret_50 <= 0.00,feat_mean_logret_50,91,0.003431,0.6374
+VRP,SP-CF-AILTA,0.01 < feat_obj_norm <= 0.02,feat_obj_norm,85,0.000862,0.5529
+VRP,SP-CF-AILTA,0.02 < feat_improve_rate_50 <= 0.04,feat_improve_rate_50,83,0.022093,0.8554
+VRP,SP-CF-AILTA,0.04 < feat_improve_rate_50 <= 0.08,feat_improve_rate_50,82,0.012892,0.8659
+VRP,SP-CF-AILTA,-0.00 < feat_mean_logret_50 <= -0.00,feat_mean_logret_50,73,0.002663,0.5616
+VRP,SP-CF-AILTA,feat_improve_rate_50 > 0.08,feat_improve_rate_50,62,0.001226,0.6129
+VRP,SP-CF-AILTA,0.01 < feat_obj_norm <= 0.01,feat_obj_norm,61,0.001392,0.623
+VRP,SP-CF-AILTA,feat_last_h3 > 8.00,feat_last_h3,32,1.6e-05,0.5312
+VRP,MP-CF,feat_progress <= 0.25,feat_progress,124,0.114419,0.8468
+VRP,MP-CF,feat_progress > 0.75,feat_progress,121,0.017111,0.5372
+VRP,MP-CF,feat_gap_to_best > 0.00,feat_gap_to_best,120,0.193911,1.0
+VRP,MP-CF,feat_obj_norm > 0.00,feat_obj_norm,115,0.093081,0.9739
+VRP,MP-CF,feat_pop_diversity > 0.00,feat_pop_diversity,110,0.263445,1.0
+VRP,MP-CF,feat_mean_logret_50 <= 0.00,feat_mean_logret_50,109,0.172753,1.0
+VRP,MP-CF,2.00 < feat_last_class3 <= 3.00,feat_last_class3,62,0.01454,0.5968
+VRP,MP-CF,feat_last_class1 <= 0.00,feat_last_class1,53,0.008733,0.6604
+VRP,MP-CF,5.00 < feat_last_h1 <= 8.00,feat_last_h1,49,0.030783,0.8571
+VRP,MP-CF,feat_pop_target_rank > 5.00,feat_pop_target_rank,49,0.140648,0.7959
+VRP,MP-CF,feat_last_class2 <= 0.00,feat_last_class2,48,0.001602,0.5417
+VRP,MP-CF,feat_improve_rate_50 > 0.02,feat_improve_rate_50,48,0.025994,0.6667
+VRP,MP-CF,0.00 < feat_pop_target_rank <= 5.00,feat_pop_target_rank,32,0.110454,0.6875
+VRP,MP-CF,feat_last_h3 <= 2.00,feat_last_h3,31,0.005128,0.6129
+VRP,MP-CF,feat_last_h1 > 8.00,feat_last_h1,29,0.016433,0.6897
+VRP,MP-CF,0.00 < feat_last_class2 <= 2.00,feat_last_class2,28,0.000659,0.5714
+VRP,MP-CF,feat_improve_rate_50 > 0.00,feat_improve_rate_50,27,0.038159,1.0
+VRP,MP-CF,feat_pop_target_rank > 6.00,feat_pop_target_rank,26,0.201892,1.0
+VRP,MP-CF,0.00 < feat_pop_target_rank <= 6.00,feat_pop_target_rank,23,0.266344,1.0
+VRP,MP-CF,feat_pop_target_rank > 0.00,feat_pop_target_rank,22,0.317783,1.0
+PersonnelScheduling,SP-CF-LA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,354,0.08807,0.9944
+PersonnelScheduling,SP-CF-LA,feat_last_class1 <= 1.00,feat_last_class1,164,0.085289,0.8659
+PersonnelScheduling,SP-CF-LA,feat_last_h1 > 8.00,feat_last_h1,127,0.111525,1.0
+PersonnelScheduling,SP-CF-LA,5.00 < feat_last_h1 <= 8.00,feat_last_h1,113,0.040486,0.6106
+PersonnelScheduling,SP-CF-LA,5.00 < feat_last_h3 <= 8.00,feat_last_h3,108,0.073815,1.0
+PersonnelScheduling,SP-CF-LA,2.00 < feat_last_h2 <= 5.00,feat_last_h2,105,0.048311,0.9238
+PersonnelScheduling,SP-CF-LA,feat_last_class2 <= 1.00,feat_last_class2,98,0.027742,0.9796
+PersonnelScheduling,SP-CF-LA,2.00 < feat_last_h1 <= 5.00,feat_last_h1,93,0.0215,0.5161
+PersonnelScheduling,SP-CF-LA,feat_progress > 0.75,feat_progress,91,0.01576,0.5714
+PersonnelScheduling,SP-CF-LA,0.50 < feat_progress <= 0.75,feat_progress,87,0.023934,0.7816
+PersonnelScheduling,SP-CF-LA,feat_last_h2 > 8.00,feat_last_h2,86,0.062153,0.9419
+PersonnelScheduling,SP-CF-LA,2.00 < feat_last_h3 <= 5.00,feat_last_h3,85,0.105182,0.9882
+PersonnelScheduling,SP-CF-LA,5.00 < feat_last_h2 <= 8.00,feat_last_h2,84,0.058345,0.8333
+PersonnelScheduling,SP-CF-LA,0.57 < feat_mean_logret_50 <= 0.62,feat_mean_logret_50,80,0.069923,1.0
+PersonnelScheduling,SP-CF-LA,0.25 < feat_progress <= 0.50,feat_progress,79,0.05639,0.8228
+PersonnelScheduling,SP-CF-LA,feat_mean_logret_50 > 0.62,feat_mean_logret_50,78,0.080016,1.0
+PersonnelScheduling,SP-CF-LA,feat_last_class3 <= 1.00,feat_last_class3,69,0.025625,0.9855
+PersonnelScheduling,SP-CF-LA,0.52 < feat_mean_logret_50 <= 0.57,feat_mean_logret_50,33,0.025979,0.6667
+PersonnelScheduling,SP-CF-LA,0.59 < feat_mean_logret_50 <= 0.63,feat_mean_logret_50,27,0.054081,1.0
+PersonnelScheduling,SP-CF-LA,0.50 < feat_mean_logret_50 <= 0.57,feat_mean_logret_50,26,0.0725,1.0
+PersonnelScheduling,SP-CF-AILTA,feat_iters_since_accept <= 0.00,feat_iters_since_accept,379,0.022383,0.8839
+PersonnelScheduling,SP-CF-AILTA,feat_last_class1 <= 1.00,feat_last_class1,134,0.033296,0.9776
+PersonnelScheduling,SP-CF-AILTA,2.00 < feat_last_h2 <= 5.00,feat_last_h2,134,0.035354,0.9179
+PersonnelScheduling,SP-CF-AILTA,2.00 < feat_last_h1 <= 5.00,feat_last_h1,121,0.014937,0.6364
+PersonnelScheduling,SP-CF-AILTA,5.00 < feat_last_h2 <= 8.00,feat_last_h2,112,0.062674,1.0
+PersonnelScheduling,SP-CF-AILTA,0.25 < feat_progress <= 0.50,feat_progress,111,0.063151,1.0
+PersonnelScheduling,SP-CF-AILTA,2.00 < feat_last_h3 <= 5.00,feat_last_h3,111,0.03452,0.973
+PersonnelScheduling,SP-CF-AILTA,feat_last_h1 > 8.00,feat_last_h1,106,0.05653,1.0
+PersonnelScheduling,SP-CF-AILTA,5.00 < feat_last_h1 <= 8.00,feat_last_h1,106,0.049183,1.0
+PersonnelScheduling,SP-CF-AILTA,feat_last_h2 > 8.00,feat_last_h2,104,0.066829,1.0
+PersonnelScheduling,SP-CF-AILTA,feat_last_h3 > 8.00,feat_last_h3,103,0.04686,1.0
+PersonnelScheduling,SP-CF-AILTA,0.50 < feat_progress <= 0.75,feat_progress,96,0.0473,0.8542
+PersonnelScheduling,SP-CF-AILTA,5.00 < feat_last_h3 <= 8.00,feat_last_h3,94,0.048622,1.0
+PersonnelScheduling,SP-CF-AILTA,feat_last_class3 <= 1.00,feat_last_class3,79,0.021354,0.9494
+PersonnelScheduling,SP-CF-AILTA,feat_improve_rate_50 > 0.02,feat_improve_rate_50,59,0.111215,1.0
+PersonnelScheduling,SP-CF-AILTA,feat_last_class2 <= 1.00,feat_last_class2,58,0.009812,0.8448
+PersonnelScheduling,SP-CF-AILTA,1.00 < feat_last_class2 <= 2.00,feat_last_class2,43,0.001624,0.5814
+PersonnelScheduling,SP-CF-AILTA,0.00 < feat_gap_to_best <= 0.00,feat_gap_to_best,42,0.005823,0.7619
+PersonnelScheduling,SP-CF-AILTA,feat_mean_logret_50 > 0.56,feat_mean_logret_50,41,0.007046,0.561
+PersonnelScheduling,SP-CF-AILTA,0.00 < feat_obj_norm <= 0.00,feat_obj_norm,40,0.007238,0.7
+PersonnelScheduling,MP-CF,feat_gap_to_best > 0.00,feat_gap_to_best,127,0.131789,0.9055
+PersonnelScheduling,MP-CF,feat_progress <= 0.25,feat_progress,124,0.256451,1.0
+PersonnelScheduling,MP-CF,feat_last_h2 <= 1.00,feat_last_h2,123,0.065789,0.9675
+PersonnelScheduling,MP-CF,feat_obj_norm > 0.00,feat_obj_norm,118,0.114099,0.839
+PersonnelScheduling,MP-CF,feat_last_h3 <= 1.00,feat_last_h3,103,0.065486,1.0
+PersonnelScheduling,MP-CF,feat_pop_target_rank <= 5.00,feat_pop_target_rank,101,0.06371,0.901
+PersonnelScheduling,MP-CF,2.00 < feat_last_class2 <= 3.00,feat_last_class2,75,0.012758,0.84
+PersonnelScheduling,MP-CF,feat_pop_diversity > 0.01,feat_pop_diversity,70,0.281766,0.8571
+PersonnelScheduling,MP-CF,feat_last_class1 <= 2.00,feat_last_class1,65,0.020939,0.6154
+PersonnelScheduling,MP-CF,feat_last_h1 > 5.00,feat_last_h1,54,0.034128,0.9074
+PersonnelScheduling,MP-CF,1.00 < feat_last_h1 <= 3.00,feat_last_h1,51,0.000599,0.549
+PersonnelScheduling,MP-CF,feat_last_h1 <= 1.00,feat_last_h1,46,0.002009,0.587
+PersonnelScheduling,MP-CF,feat_improve_rate_50 > 0.04,feat_improve_rate_50,45,0.054737,0.7111
+PersonnelScheduling,MP-CF,feat_last_class3 <= 2.00,feat_last_class3,42,0.008712,0.6429
+PersonnelScheduling,MP-CF,feat_pop_diversity > 0.00,feat_pop_diversity,36,0.2449,0.8889
+PersonnelScheduling,MP-CF,0.02 < feat_improve_rate_50 <= 0.04,feat_improve_rate_50,25,-0.002971,0.52
+PersonnelScheduling,MP-CF,feat_iters_since_accept > 92.00,feat_iters_since_accept,15,0.116019,1.0
+PersonnelScheduling,MP-CF,feat_iters_since_accept > 188.00,feat_iters_since_accept,14,0.222173,1.0
+PersonnelScheduling,MP-CF,0.30 < feat_mean_logret_50 <= 0.95,feat_mean_logret_50,14,0.076087,1.0
+PersonnelScheduling,MP-CF,feat_iters_since_accept > 114.00,feat_iters_since_accept,14,0.130784,1.0

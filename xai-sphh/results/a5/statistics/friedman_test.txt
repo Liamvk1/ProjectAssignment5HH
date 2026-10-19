@@ -1,0 +1,16 @@
+Friedman Test: techniques as treatments, domains as blocks
+Techniques: ['SP-SR-LA', 'SP-CF-LA', 'SP-CF-AILTA', 'MP-CF']
+Domains: ['SAT', 'BinPacking', 'FlowShop', 'TSP', 'VRP', 'PersonnelScheduling']
+
+Rank matrix (rows=domains, cols=techniques):
+  SAT: [3. 2. 1. 4.]
+  BinPacking: [2. 3. 4. 1.]
+  FlowShop: [2. 3. 1. 4.]
+  TSP: [2. 4. 3. 1.]
+  VRP: [3. 4. 2. 1.]
+  PersonnelScheduling: [2. 3. 1. 4.]
+
+Mean ranks: [2.33333333 3.16666667 2.         2.5       ]
+
+Friedman chi-squared = 2.6000, p = 0.457490
+Result: NOT significant (p >= 0.05). No evidence of difference between techniques across domains.

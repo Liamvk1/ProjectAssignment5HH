@@ -1,0 +1,9 @@
+techniqueName: MP-CF
+domain: TSP
+instanceIndex: 0
+seed: 2048
+budgetType: iterations
+budgetValue: 10000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  populationSize: 10

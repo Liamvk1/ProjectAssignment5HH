@@ -1,0 +1,9 @@
+techniqueName: SP-CF-LA
+domain: FlowShop
+instanceIndex: 0
+seed: 42
+budgetType: iterations
+budgetValue: 100000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  listLength: 50

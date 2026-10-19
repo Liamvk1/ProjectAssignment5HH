@@ -1,0 +1,878 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=25mm]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{float}
+\usepackage{enumitem}
+
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black}
+
+\title{\textbf{Project Assessment 5}\\
+Cross-Domain Replicated Analysis of Selection Perturbative\\
+Hyper-Heuristics with Explainable AI}
+\author{Dreas Vermaak u22497618, Liam van Kasterop u22539761,\\
+Katleho Moeletsi 19061430, Emmanuel Ramphabana u25721373\\
+Department of Computer Science}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+This assessment addresses four feedback items from Assessment~4: insufficient
+experimental replication, an incorrect claim of comparability with published
+CHeSC results, inconsistent cross-technique SHAP magnitude comparisons, and
+the absence of explicit research questions to guide the analysis. The
+hyper-heuristic logic is unchanged; the improvements are in experimental
+methodology, statistical rigour, and explanation validity.
+
+\subsection{Research Questions}
+
+\begin{itemize}
+  \item \textbf{RQ1}: Within each domain, does any technique outperform the Simple Random baseline (SP-SR-LA) with statistical support?
+  \item \textbf{RQ2}: Which technique performs best across domains?
+  \item \textbf{RQ3}: Which state features drive acceptance within each technique, and are these explanations stable across seeds?
+  \item \textbf{RQ4}: Do the features that drive acceptance differ between selection strategies, acceptance strategies, and search topologies?
+\end{itemize}
+
+\subsection{Techniques}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+Technique & Topology & Selection & Acceptance \\
+\midrule
+SP-SR-LA & Single-point & Simple Random & Late Acceptance, $L{=}50$ \\
+SP-CF-LA & Single-point & Choice Function & Late Acceptance, $L{=}50$ \\
+SP-CF-AILTA & Single-point & Choice Function & AILTA \\
+MP-CF & Multi-point (pop=10) & Choice Function & Population replacement \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Selection strategies.}
+\emph{Simple Random} selects a low-level heuristic uniformly at random each
+iteration, serving as a non-adaptive baseline.
+The \emph{Modified Choice Function} (Drake, \"{O}zcan \& Burke, 2012) scores each
+heuristic~$h$ as
+$\mathrm{CF}(h) = \varphi\,f_1[h] + \varphi\,f_2[\textit{prev}][h]
+               + (1{-}\varphi)\,f_3[h]$,
+where $f_1$ accumulates the improvement per unit CPU time of~$h$ applied alone
+(exponentially decayed), $f_2$ captures pair-sequence synergy between the
+previous heuristic and~$h$, and $f_3$ is the elapsed time since~$h$ was last
+applied (favouring idle heuristics). The adaptive weight~$\varphi$ snaps to
+$0.99$ on any improving move and decays by $0.01$ per non-improving step
+(floor $0.01$), shifting the balance from exploitation to exploration as
+the search stagnates. The first~$n$ iterations (one per heuristic) apply each
+heuristic once in round-robin to initialise $f_1$.
+
+\textbf{Acceptance strategies.}
+\emph{Late Acceptance} (Burke \& Bykov 2017) maintains a circular buffer of
+length $L{=}50$ storing past incumbent objectives. A candidate is accepted if
+it improves the current incumbent \emph{or} is no worse than the entry
+$L$~steps ago; the buffer is tightened monotonically (never relaxed). All
+slots are initialised to $+\infty$, so the first $L$~iterations accept
+everything.
+\emph{AILTA} is a simplified linear-decay variant of the Adaptive
+Iteration-Limited Threshold Accepting strategy used in AdapHH
+(M{\i}s{\i}r \& \"{O}zcan 2014). The full AILTA reheats the threshold after
+prolonged stagnation; our variant omits reheating and decays the threshold
+linearly: $\theta(t) = 0.02\,|f_0|\,(1 - t/T)$, where $f_0$ is the starting
+objective. A candidate is accepted if its objective exceeds the incumbent by
+at most~$\theta(t)$. At the final iteration, $\theta = 0$ and the strategy
+degenerates to improving-or-equal acceptance. The threshold is scaled to each
+domain's starting objective, avoiding the need to tune an absolute constant
+per domain.
+
+\textbf{Multi-point topology.}
+MP-CF maintains a population of $p{=}10$ solutions. Each iteration, a binary
+tournament selects the \emph{worst} individual as the replacement target, and
+a second tournament (excluding the target) selects the \emph{best} as a
+potential crossover partner. A candidate replaces the target if and only if it
+is strictly better \emph{and} the target is not the population-best (elitism
+guard). There is no separate acceptance module; the replacement rule serves
+as the acceptance criterion. A single shared Choice Function instance scores
+heuristics across all individuals.
+
+\textbf{Low-level heuristic sets.}
+Each HyFlex domain exposes a fixed set of heuristics discovered at runtime
+via \texttt{getNumberOfHeuristics()}: SAT (11), BinPacking (8), FlowShop (15),
+TSP (13), VRP (10), PersonnelScheduling (12). These include mutation,
+ruin-and-recreate, local search, and crossover operators; the hyper-heuristic
+treats them as black boxes identified only by index and HyFlex type class.
+
+\section{Experimental Setup}
+
+\subsection{Real HyFlex Domains}
+
+All experiments use the real CHeSC HyFlex jar files placed in
+\texttt{lib/hyflex/}. All 240 run manifests report \texttt{stub:~false}.
+The six domains are SAT, BinPacking, FlowShop, TSP, VRP, and
+PersonnelScheduling.
+
+\textbf{Limitation}: These results are not directly comparable to published CHeSC
+rankings. The CHeSC competition used a normalised 10-minute wall-clock time limit
+(scaled by a hardware benchmark), competition instances, and 31 independent runs per
+technique per domain. This study uses a per-domain iteration budget, instance~0 only,
+and 10 seeds. The real HyFlex domains are the same, but the experimental protocol
+differs.
+
+\subsection{Budget Policy}
+
+The budget is defined as a count of heuristic applications (calls to
+\texttt{applyHeuristic()}). All four techniques within a domain receive the same
+budget. MP-CF with population~10 receives the same total number of applications as
+the single-point techniques, not 10 times as many.
+
+Per-domain budgets are set from convergence curves on a pilot run (Assessment~4,
+seed~42, 100{,}000 iterations for non-PS domains, 10{,}000 for PersonnelScheduling).
+For each domain, the budget is the smallest tier in
+\{5{,}000; 10{,}000; 20{,}000; 50{,}000; 100{,}000\} that exceeds the iteration at
+which all four techniques reach 95\% of their total improvement.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrl}
+\toprule
+Domain & Budget & 95\% convergence iteration \\
+\midrule
+SAT & 50{,}000 & 28{,}536 \\
+BinPacking & 100{,}000 & 94{,}670 \\
+FlowShop & 100{,}000 & 91{,}405 \\
+TSP & 10{,}000 & 9{,}834 \\
+VRP & 50{,}000 & 29{,}002 \\
+PersonnelScheduling & 5{,}000 & 1{,}212 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+PersonnelScheduling's budget is naturally low because it converges rapidly. Profiling
+(Task~0) showed that 94.8\% of PersonnelScheduling wall time is spent in HyFlex
+\texttt{LOCAL\_SEARCH} calls (mean 484\,ms per application), with instrumentation
+contributing only 1.4\%. No optimisation of our code can reduce this cost.
+
+\subsection{Replication}
+
+Each cell (technique $\times$ domain) is run with 10 independent seeds: 42, 123, 456,
+789, 1024, 2048, 3141, 4242, 5555, 9999. Each run uses a fresh problem object, fresh
+selector state, and a fresh RNG seeded with the run's seed. Total: 240 runs, all
+completing successfully. Total wall time: 20 hours 14 minutes.
+
+\subsection{Improvement over Assessment 4}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+Aspect & Assessment 4 & Assessment 5 \\
+\midrule
+Seeds per cell & 1 & 10 \\
+Total runs & 24 & 240 \\
+Statistical tests & None & Wilcoxon, Friedman, A12 \\
+Budget & Fixed 100{,}000 all domains & Per-domain from convergence \\
+SHAP surrogates & Pooled across domains & Per-domain, per-seed \\
+SHAP comparison & Raw magnitudes & Ranks and shares \\
+CHeSC claim & Claimed comparability & Explicitly disclaimed \\
+\texttt{feat\_llh\_count} & Included (domain label) & Excluded \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Results: Within-Domain Performance (RQ1)}
+
+\subsection{Summary Statistics}
+
+\textbf{SAT} (budget: 50{,}000)
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Technique & Median & IQR & Mean & SD & Min & Max \\
+\midrule
+SP-SR-LA & 12.50 & [9.50, 15.75] & 12.50 & 3.78 & 6.0 & 19.0 \\
+SP-CF-LA & 11.50 & [8.50, 13.75] & 12.20 & 4.18 & 7.0 & 20.0 \\
+SP-CF-AILTA & \textbf{4.00} & [4.00, 4.75] & 4.30 & 1.16 & 3.0 & 7.0 \\
+MP-CF & 44.00 & [42.25, 49.00] & 43.80 & 8.31 & 30.0 & 56.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{BinPacking} (budget: 100{,}000)
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Technique & Median & IQR & Mean & SD \\
+\midrule
+SP-SR-LA & 0.01140 & [0.0110, 0.0118] & 0.0113 & 0.0006 \\
+SP-CF-LA & 0.01190 & [0.0114, 0.0124] & 0.0119 & 0.0007 \\
+SP-CF-AILTA & 0.02080 & [0.0191, 0.0215] & 0.0205 & 0.0020 \\
+MP-CF & \textbf{0.01140} & [0.0112, 0.0115] & 0.0114 & 0.0002 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Note: SP-SR-LA and MP-CF are tied at median 0.0114. MP-CF is not significantly
+better than SP-SR-LA ($p = 0.557$; see \S3.2), so this ranking is not meaningful.
+
+\textbf{FlowShop} (budget: 100{,}000)
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Technique & Median & IQR & Mean & SD \\
+\midrule
+SP-SR-LA & 6353.0 & [6347, 6366] & 6354.3 & 16.6 \\
+SP-CF-LA & 6364.0 & [6346, 6374] & 6362.1 & 30.0 \\
+SP-CF-AILTA & \textbf{6313.5} & [6303, 6325] & 6311.4 & 18.5 \\
+MP-CF & 6369.0 & [6364, 6390] & 6375.5 & 18.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{TSP} (budget: 10{,}000)
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Technique & Median & IQR & Mean & SD \\
+\midrule
+SP-SR-LA & 51{,}039 & [50{,}607, 52{,}188] & 51{,}206 & 1{,}070 \\
+SP-CF-LA & 51{,}558 & [51{,}198, 52{,}633] & 51{,}640 & 1{,}257 \\
+SP-CF-AILTA & 51{,}204 & [50{,}231, 51{,}567] & 50{,}996 & 1{,}036 \\
+MP-CF & \textbf{49{,}826} & [49{,}743, 50{,}100] & 50{,}010 & 634 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{VRP} (budget: 50{,}000)
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Technique & Median & IQR & Mean & SD \\
+\midrule
+SP-SR-LA & 6{,}133 & [5{,}896, 6{,}218] & 6{,}123 & 669 \\
+SP-CF-LA & 7{,}132 & [7{,}020, 7{,}164] & 7{,}031 & 584 \\
+SP-CF-AILTA & 5{,}215 & [5{,}188, 5{,}234] & 5{,}299 & 289 \\
+MP-CF & \textbf{5{,}161} & [5{,}148, 5{,}197] & 5{,}177 & 47 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{PersonnelScheduling} (budget: 5{,}000)
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Technique & Median & IQR & Mean & SD \\
+\midrule
+SP-SR-LA & 3{,}334 & [3{,}315, 3{,}340] & 3{,}330 & 24.3 \\
+SP-CF-LA & 3{,}336 & [3{,}323, 3{,}355] & 3{,}340 & 24.8 \\
+SP-CF-AILTA & \textbf{3{,}301} & [3{,}291, 3{,}311] & 3{,}303 & 14.2 \\
+MP-CF & 3{,}341 & [3{,}336, 3{,}345] & 3{,}340 & 7.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Wilcoxon Signed-Rank Tests vs SP-SR-LA Baseline}
+
+All tests are two-sided, paired by seed, with Holm correction within each domain.
+$A_{12} < 0.5$ means the tested technique is better (lower objective) than SP-SR-LA.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llrrl}
+\toprule
+Domain & Technique & $p$ (corrected) & $A_{12}$ & Significant? \\
+\midrule
+SAT & SP-CF-LA & 0.992 & 0.455 & No \\
+SAT & SP-CF-AILTA & \textbf{0.006} & \textbf{0.01} & \textbf{Yes} \\
+SAT & MP-CF & \textbf{0.006} & 1.00 & \textbf{Yes} (worse) \\
+\midrule
+BinPacking & SP-CF-LA & \textbf{0.006} & 0.90 & \textbf{Yes} (worse) \\
+BinPacking & SP-CF-AILTA & \textbf{0.006} & 1.00 & \textbf{Yes} (worse) \\
+BinPacking & MP-CF & 0.557 & 0.45 & No \\
+\midrule
+FlowShop & SP-CF-LA & 0.541 & 0.59 & No \\
+FlowShop & SP-CF-AILTA & \textbf{0.012} & \textbf{0.03} & \textbf{Yes} \\
+FlowShop & MP-CF & 0.059 & 0.815 & No \\
+\midrule
+TSP & SP-CF-LA & 1.000 & 0.61 & No \\
+TSP & SP-CF-AILTA & 1.000 & 0.45 & No \\
+TSP & MP-CF & 0.059 & 0.18 & No \\
+\midrule
+VRP & SP-CF-LA & \textbf{0.020} & 0.81 & \textbf{Yes} (worse) \\
+VRP & SP-CF-AILTA & \textbf{0.020} & \textbf{0.19} & \textbf{Yes} \\
+VRP & MP-CF & \textbf{0.018} & \textbf{0.12} & \textbf{Yes} \\
+\midrule
+PS & SP-CF-LA & 0.537 & 0.61 & No \\
+PS & SP-CF-AILTA & \textbf{0.041} & \textbf{0.16} & \textbf{Yes} \\
+PS & MP-CF & 0.449 & 0.695 & No \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Answer to RQ1}
+
+SP-CF-AILTA significantly outperforms the SP-SR-LA baseline in 4 of 6 domains
+(SAT, FlowShop, VRP, PersonnelScheduling; all $p < 0.05$ after Holm correction,
+all $A_{12} < 0.20$). In BinPacking it is significantly worse. MP-CF significantly
+outperforms the baseline in VRP ($A_{12} = 0.12$) but is significantly worse in SAT.
+In BinPacking and TSP, MP-CF's median advantage is not significant.
+SP-CF-LA shows no significant improvement over the baseline in any domain and is
+significantly worse in BinPacking and VRP.
+
+\textbf{The Choice Function with AILTA acceptance (SP-CF-AILTA) is the only technique
+that consistently improves over Simple Random across most domains.}
+
+\section{Results: Cross-Domain Ranking (RQ2)}
+
+\subsection{Rank Table}
+
+Techniques are ranked by median within each domain (1 = best, i.e.\ lowest objective).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Domain & SP-SR-LA & SP-CF-LA & SP-CF-AILTA & MP-CF \\
+\midrule
+SAT & 3 & 2 & \textbf{1} & 4 \\
+BinPacking & 1.5$^\dagger$ & 3 & 4 & 1.5$^\dagger$ \\
+FlowShop & 2 & 3 & \textbf{1} & 4 \\
+TSP & 2 & 4 & 3 & \textbf{1} \\
+VRP & 3 & 4 & 2 & \textbf{1} \\
+PS & 2 & 3 & \textbf{1} & 4 \\
+\midrule
+\textbf{Mean rank} & \textbf{2.25} & \textbf{3.17} & \textbf{2.00} & \textbf{2.58} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+$^\dagger$Tied at median 0.0114 (mid-rank); difference not significant ($p = 0.557$).
+
+\subsection{Normalised Scores}
+
+Normalised to $[0, 1]$ per domain: (median $-$ best) / (worst $-$ best). Lower is better.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
+\toprule
+Technique & Mean normalised score \\
+\midrule
+SP-CF-AILTA & \textbf{0.30} \\
+SP-SR-LA & 0.49 \\
+MP-CF & 0.50 \\
+SP-CF-LA & 0.67 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Friedman Test}
+
+Friedman chi-squared $= 2.80$, $p = 0.424$. \textbf{Not significant.} There is no
+statistically significant difference between the four techniques across all six
+domains when treated as a group. This is expected with only 6 blocks (domains) and
+relatively close mean ranks (2.00 to 3.17).
+
+\subsection{Answer to RQ2}
+
+SP-CF-AILTA has the best mean rank (2.00) and best mean normalised score (0.30),
+ranking 1st in 3 of 6 domains (SAT, FlowShop, PS) and 2nd in VRP. MP-CF ranks
+1st in TSP and VRP and ties for 1st in BinPacking. However, the Friedman test
+does not detect a significant overall difference ($p = 0.424$), so the ranking
+advantage of SP-CF-AILTA over the alternatives cannot be confirmed at the
+cross-domain level with 6 domains.
+
+\textbf{No technique dominates across all domains.} SP-CF-AILTA and MP-CF each have
+complementary strengths, but MP-CF's advantage is significant only in VRP.
+
+\section{SHAP Analysis (RQ3 and RQ4)}
+
+The XAI analysis addresses the benchmark paper's question---\emph{which heuristics
+are effective, and when?}---indirectly: surrogates model acceptance (whether a
+heuristic application's result was kept) rather than performance directly. The
+features that the surrogate relies on to predict acceptance reveal which aspects of
+search state the hyper-heuristic implicitly conditions on when deciding to keep or
+discard a candidate solution.
+
+\subsection{Surrogate Fidelity}
+
+Per-domain, per-technique, per-seed gradient boosting surrogates were trained.
+\texttt{feat\_llh\_count} was excluded because it is constant within a domain and
+acted as a domain label in Assessment~4's pooled surrogates.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrl}
+\toprule
+Technique & Mean ROC-AUC & Min ROC-AUC & Flagged ($<0.6$) & Notes \\
+\midrule
+SP-SR-LA & 0.52 & 0.49 & \textbf{60/60 (100\%)} & Near-random \\
+SP-CF-LA & 0.88 & 0.66 & 0/60 & Adequate \\
+SP-CF-AILTA & 0.91 & 0.70 & 0/60 & Good \\
+MP-CF & 0.89 & 0.65 & 0/60 & Adequate \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{SP-SR-LA surrogates are uniformly flagged across all 6 domains and all 10
+seeds} (ROC-AUC 0.49--0.55, mean 0.52). No SHAP attributions are reported for
+SP-SR-LA.
+
+\textbf{Robustness check.} Because a uniform AUC of ${\sim}0.5$ could indicate a
+logging fault rather than a genuine absence of structure, we verified three potential
+failure modes: (1)~\texttt{feat\_last\_h*} columns are populated with real heuristic
+indices for SR runs---the distribution across indices is approximately uniform, as
+expected from random selection; (2)~acceptance labels are not near-constant---rejection
+rates range from 26\% to 40\%, comparable to CF-based techniques;
+(3)~\texttt{feat\_iters\_since\_accept} is recorded before the acceptance decision
+(the state snapshot is taken before the heuristic is applied and the decision made),
+so there is no target leakage.
+
+The trace schema reveals the root cause: \texttt{feat\_last\_h1} records the
+heuristic applied in the \emph{previous} iteration, not the current one (the
+current heuristic is in the \texttt{heuristic\_id} column, which is not a
+surrogate feature). We verified this by checking that
+\texttt{feat\_last\_h1} at row~$N$ equals \texttt{heuristic\_id} at
+row~$N{-}1$ (100\% match across all traces).
+
+Acceptance rates grouped by the \emph{actual} heuristic applied this iteration
+(\texttt{heuristic\_id}) are \emph{not} flat. In BinPacking, local search
+heuristics are accepted at ${\sim}100\%$ (they never worsen the solution,
+all deltas $\leq 0$). Crossover is also accepted at 100\%, but for a
+different reason: in single-point search the incumbent is crossed with
+itself, producing an identical child (delta $= 0$ in every application).
+One mutation heuristic (h3) also never worsens the solution and is
+accepted at 100\%, while the other two mutation heuristics are accepted
+at only 0.4--1.9\%. The per-type rates are: local search~100\%,
+crossover~100\%, ruin-recreate~57\%, mutation~34\% (the high type
+average reflects h3's 100\% rate pulling up the two low ones).
+
+Under random selection, \texttt{feat\_last\_h1} is statistically independent
+of the current heuristic, so it carries no signal about the current
+acceptance outcome and the surrogate cannot learn from it. Under the
+Choice Function, consecutive choices are correlated: CF never repeats
+the same heuristic (repeat rate 0\% vs 12.5\% expected under uniform
+random), and the $f_2$ pair-sequence term rewards certain orderings.
+This temporal structure makes \texttt{feat\_last\_h1} informative about
+which heuristic is applied \emph{now}, giving the surrogate a learnable
+signal.
+
+We therefore state the finding as: \emph{the SR/CF explainability gap
+arises because the lagged heuristic features are uninformative under
+random selection but informative under adaptive selection's sequential
+structure}.
+
+\subsection{Feature Importance (Ranks and Shares)}
+
+SHAP importance is reported as \textbf{shares} (mean $|\mathrm{SHAP}|$ / total mean
+$|\mathrm{SHAP}|$) and \textbf{ranks} (1 = most important). These are comparable
+across techniques within a domain. Raw SHAP magnitudes are never compared across
+techniques.
+
+\subsubsection*{SP-CF-LA --- Heuristic identity features dominate}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+Domain & Rank 1 (share) & Rank 2 (share) & Rank 3 (share) \\
+\midrule
+SAT & \texttt{mean\_logret\_50} (33\%) & \texttt{last\_h1} (21\%) & \texttt{last\_h3} (16\%) \\
+BinPacking & \texttt{last\_h3} (27\%) & \texttt{last\_h2} (20\%) & \texttt{last\_class1} (15\%) \\
+FlowShop & \texttt{last\_h1} (27\%) & \texttt{last\_h2} (15\%) & \texttt{last\_h3} (13\%) \\
+TSP & \texttt{iters\_since\_imp} (32\%) & \texttt{progress} (31\%) & \texttt{mean\_logret\_50} (9\%) \\
+VRP & \texttt{last\_h1} (15\%) & \texttt{last\_h2} (13\%) & \texttt{last\_h3} (12\%) \\
+PS & \texttt{last\_h1} (18\%) & \texttt{last\_h3} (18\%) & \texttt{iters\_since\_imp} (14\%) \\
+\bottomrule
+\end{tabular}
+\caption*{Feature names are abbreviated: \texttt{last\_h$k$} = \texttt{feat\_last\_h$k$}
+(index of the $k$-th most recent heuristic).}
+\end{table}
+
+In 4 of 6 domains, the top features are heuristic identity indicators
+(\texttt{feat\_last\_h*}). Because these features record the \emph{previous}
+iteration's heuristic (\S5.1), they are informative under CF but not under
+SR\@. The Choice Function's sequential structure---no consecutive
+repeats and $f_2$ pair-sequence rewards---creates temporal correlations
+that let the surrogate infer the current heuristic (and hence the
+likely acceptance outcome) from the previous one.
+
+\subsubsection*{SP-CF-AILTA --- Search dynamics features dominate}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+Domain & Rank 1 (share) & Rank 2 (share) & Rank 3 (share) \\
+\midrule
+SAT & \texttt{progress} (33\%) & \texttt{iters\_since\_imp} (31\%) & \texttt{improve\_rate\_50} (10\%) \\
+BinPacking & \texttt{last\_h2} (27\%) & \texttt{last\_h3} (20\%) & \texttt{iters\_since\_acc} (9\%) \\
+FlowShop & \texttt{improve\_rate\_50} (50\%) & \texttt{progress} (20\%) & \texttt{mean\_logret\_50} (7\%) \\
+TSP & \texttt{iters\_since\_imp} (29\%) & \texttt{progress} (29\%) & \texttt{improve\_rate\_50} (10\%) \\
+VRP & \texttt{progress} (30\%) & \texttt{mean\_logret\_50} (20\%) & \texttt{iters\_since\_imp} (16\%) \\
+PS & \texttt{last\_h2} (20\%) & \texttt{improve\_rate\_50} (16\%) & \texttt{last\_h1} (14\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In 4 of 6 domains, the top feature is a search-progress indicator
+(\texttt{feat\_progress}, \texttt{feat\_improve\_\allowbreak{}rate\_50},
+or \texttt{feat\_iters\_since\_\allowbreak{}improve}).
+AILTA's linearly decaying threshold creates a dependency on
+\emph{where in the search} the decision occurs, shifting importance away
+from heuristic identity toward search dynamics.
+
+\subsubsection*{MP-CF --- Population and temporal features emerge}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+Domain & Rank 1 (share) & Rank 2 (share) & Rank 3 (share) \\
+\midrule
+SAT & \texttt{progress} (26\%) & \texttt{iters\_since\_acc} (21\%) & \texttt{pop\_diversity} (18\%) \\
+BinPacking & \texttt{progress} (25\%) & \texttt{iters\_since\_imp} (16\%) & \texttt{gap\_to\_best} (10\%) \\
+FlowShop & \texttt{improve\_rate\_50} (22\%) & \texttt{mean\_logret\_50} (22\%) & \texttt{pop\_diversity} (16\%) \\
+TSP & \texttt{mean\_logret\_50} (36\%) & \texttt{iters\_since\_imp} (17\%) & \texttt{iters\_since\_acc} (17\%) \\
+VRP & \texttt{iters\_since\_acc} (26\%) & \texttt{pop\_target\_rank} (22\%) & \texttt{pop\_diversity} (15\%) \\
+PS & \texttt{progress} (26\%) & \texttt{iters\_since\_acc} (12\%) & \texttt{iters\_since\_imp} (11\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Population-specific features (\texttt{feat\_pop\_diversity},
+\texttt{feat\_pop\_target\_rank}) appear in the top~3 in 3 of 6 domains
+(SAT, FlowShop, VRP). In VRP, where MP-CF ranks 1st in performance,
+\texttt{feat\_pop\_target\_rank} has the highest share (22\%)---the surrogate
+learned that the rank of the candidate within the population is a strong predictor
+of acceptance. The lagged heuristic features (\texttt{feat\_last\_h*}) are consistently
+relegated to ranks 9--15 in MP-CF\@. In multi-point search, consecutive
+applications typically target different individuals, so the previous
+heuristic carries even less signal than in single-point CF\@.
+
+\subsection{Stability Analysis (Kendall's Tau)}
+
+To assess whether SHAP explanations are stable across seeds, we compute Kendall's
+$\tau$ rank correlation between all 45 pairs of per-seed feature rankings for each
+technique--domain cell.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Domain & SP-CF-LA & SP-CF-AILTA & MP-CF \\
+\midrule
+SAT & 0.76 (0.08) & 0.59 (0.18) & 0.57 (0.11) \\
+BinPacking & 0.38 (0.30) & 0.83 (0.09) & 0.39 (0.14) \\
+FlowShop & 0.75 (0.08) & 0.65 (0.10) & 0.42 (0.14) \\
+TSP & 0.71 (0.10) & 0.72 (0.10) & 0.42 (0.20) \\
+VRP & 0.51 (0.11) & 0.27 (0.17) & 0.68 (0.07) \\
+PS & 0.64 (0.14) & 0.72 (0.09) & 0.62 (0.10) \\
+\bottomrule
+\end{tabular}
+\caption*{Values are mean $\tau$ (std). $\tau > 0.6$: moderate--strong agreement; $\tau > 0.8$: strong.}
+\end{table}
+
+SP-CF-LA achieves the highest stability in SAT (0.76) and FlowShop (0.75) but is
+unstable in BinPacking (0.38). SP-CF-AILTA is most stable in BinPacking (0.83) and
+TSP (0.72) but unstable in VRP (0.27). MP-CF is most stable in VRP (0.68) and PS
+(0.62) but weaker in BinPacking and FlowShop. No single technique produces
+universally stable explanations across all domains.
+
+\subsection{Answer to RQ3}
+
+The features driving acceptance differ by technique and are moderately stable across
+seeds ($\tau$ ranges from 0.27 to 0.83 depending on technique--domain cell, with most
+cells above 0.5). SP-CF-LA's decisions are explained by lagged heuristic
+identity features (acting as a proxy for the current heuristic under CF's
+sequential structure), SP-CF-AILTA's by search-progress features, and
+MP-CF's by population-level features.
+These structural differences between techniques are consistent across domains, even
+where per-seed stability within a single domain is lower.
+
+Connecting this to the benchmark question of \emph{which heuristics are effective when}:
+the SHAP explanations show that \emph{what the surrogate needs to know} differs by
+technique. For SP-CF-LA, heuristic identity is the key signal---CF's sequential
+structure makes the previous heuristic predictive of acceptance. For SP-CF-AILTA,
+the search stage matters most, indicating that effectiveness is time-dependent. For
+MP-CF, population-level context (diversity, rank) matters more than the individual
+heuristic applied.
+
+\subsection{Answer to RQ4}
+
+\textbf{Selection strategy}: All 60 SP-SR-LA surrogates have ROC-AUC $\approx 0.52$,
+while the 180 CF-based surrogates achieve mean ROC-AUC 0.88--0.91
+(min 0.65--0.70). The gap arises because
+\texttt{feat\_last\_h*} features record the \emph{previous} iteration's heuristic.
+Under random selection these are uninformative noise; under CF's sequential
+structure they predict the current heuristic and hence the acceptance outcome
+(\S5.1).
+
+\textbf{Acceptance strategy}: Comparing SP-CF-LA (Late Acceptance) with SP-CF-AILTA
+(AILTA), the acceptance strategy shifts importance from heuristic identity to search
+dynamics. AILTA's linearly decaying threshold makes acceptance sensitive to
+\emph{where in the search} the decision is made, causing \texttt{feat\_progress} and
+\texttt{feat\_improve\_rate\_50} to dominate.
+
+\textbf{Search topology}: Comparing SP-CF-LA (single-point) with MP-CF (multi-point),
+the population topology introduces \texttt{feat\_pop\_diversity} and
+\texttt{feat\_pop\_target\_rank} as important features while suppressing heuristic
+identity features. In VRP, where MP-CF achieves its strongest significant performance
+advantage, \texttt{feat\_pop\_target\_rank} (22\%) and \texttt{feat\_pop\_diversity}
+(15\%) together account for 37\% of total SHAP importance.
+
+\section{LIME Analysis}
+
+\subsection{Method}
+
+LIME explanations complement SHAP by providing interpretable \emph{conditions}
+(e.g.\ \texttt{feat\_progress <= 0.25}) rather than continuous attributions. For each
+surrogate, 50 evenly-spaced instances across \texttt{feat\_progress} are explained.
+Each explanation condition is labelled with a sign: positive (+1) means the condition
+pushes the surrogate's prediction toward acceptance, negative ($-$1) toward rejection.
+Conditions are grouped into 10 progress bands (0--9) to track how acceptance drivers
+change over the search.
+
+A condition is classified as an \textbf{acceptance driver} if its
+positive\_fraction $> 0.5$ (i.e.\ it more often pushes toward acceptance than
+rejection across all explained instances where it appears).
+
+Note that LIME conditions involving heuristic indices (e.g.\
+\texttt{3 < feat\_last\_h2 <= 6}) use numeric index ranges. HyFlex exposes each
+heuristic's type class via \texttt{getHeuristicsOfType()}. For example, in
+BinPacking the mapping is: h0,3,5 = mutation; h1,2 = ruin-recreate;
+h4,6 = local search; h7 = crossover. In PersonnelScheduling:
+h0--4 = local search; h5--7 = ruin-recreate; h8--10 = crossover;
+h11 = mutation. The \texttt{feat\_last\_class*} features,
+which record the HyFlex type directly, provide a more interpretable alternative
+where they appear in explanations.
+
+\subsection{LIME Acceptance Drivers}
+
+The following summarises the most informative acceptance drivers per technique,
+selected from conditions with high positive\_fraction and substantial count.
+
+\subsubsection*{SP-CF-LA --- Heuristic-specific conditions}
+
+\begin{itemize}[nosep]
+  \item \texttt{feat\_last\_h3 <= 2.00} (BinPacking: count=144, pos\_frac=0.77, weight=0.098)
+  \item \texttt{3.00 < feat\_last\_h2 <= 6.00} (BinPacking: count=132, pos\_frac=0.92, weight=0.165)
+  \item \texttt{feat\_last\_h1 > 8.00} (PS: count=127, pos\_frac=1.00, weight=0.112)
+  \item \texttt{feat\_progress <= 0.25} (SAT: count=103, pos\_frac=0.95, weight=0.038)
+\end{itemize}
+
+SP-CF-LA's acceptance conditions depend on the \emph{previous} iteration's
+heuristic. Under CF, the previous heuristic predicts the current one
+(\S5.1), matching the SHAP finding that \texttt{feat\_last\_h*} dominates.
+
+\subsubsection*{SP-CF-AILTA --- Search-stage conditions}
+
+\begin{itemize}[nosep]
+  \item \texttt{feat\_progress <= 0.25} (SAT: count=130, pos\_frac=1.00, weight=0.263)
+  \item \texttt{0.25 < feat\_progress <= 0.50} (SAT: count=120, pos\_frac=1.00, weight=0.240)
+  \item \texttt{feat\_iters\_since\_accept\,<=\,0.00}
+    (BinPacking: count=364, pos\_frac=1.00, wt=0.129)
+  \item \texttt{feat\_improve\_rate\_50 > 0.10} (FlowShop: count=72, pos\_frac=0.90, weight=0.029)
+\end{itemize}
+
+The surrogate predicts higher acceptance probability in early progress bands
+(progress $\leq 0.50$, positive\_fraction $= 1.0$ across multiple domains).
+This is consistent with AILTA's decaying threshold, which is mechanically more
+permissive early. However, early-search permissiveness is not unique to AILTA:
+SP-CF-LA also shows \texttt{feat\_progress <= 0.25} as an acceptance driver in SAT
+(pos\_frac $= 0.95$). Part of the effect may simply reflect that improvements are
+easier to find early in any search, regardless of acceptance strategy.
+
+\subsubsection*{MP-CF --- Population diversity conditions}
+
+\begin{itemize}[nosep]
+  \item \texttt{feat\_pop\_diversity > 0.05} (SAT: count=53, pos\_frac=0.94, weight=0.308)
+  \item \texttt{feat\_pop\_diversity > 0.00} (VRP: count=110, pos\_frac=1.00, weight=0.263)
+  \item \texttt{feat\_pop\_diversity > 0.01} (PS: count=70, pos\_frac=0.86, weight=0.282)
+  \item \texttt{feat\_gap\_to\_best > 0.04} (BinPacking: count=90, pos\_frac=0.93, weight=0.191)
+  \item \texttt{feat\_pop\_target\_rank > 6.00} (VRP: count=26, pos\_frac=1.00, weight=0.202)
+\end{itemize}
+
+The surrogate predicts acceptance when population diversity is non-zero
+(positive\_fraction 0.86--1.00 with high weights). This is consistent with the
+replacement rule: a candidate replaces the worst individual only if strictly better,
+and diverse populations offer more weak targets for replacement. The causal direction
+is not established---high diversity may be a \emph{consequence} of recent acceptances
+rather than a \emph{cause}---but the surrogate reliably uses it as a predictor.
+
+\subsection{LIME Stability}
+
+LIME feature-importance stability is measured by Kendall's $\tau$ on per-seed LIME
+share rankings.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Domain & SP-CF-LA & SP-CF-AILTA & MP-CF \\
+\midrule
+SAT & 0.52 (0.12) & 0.54 (0.13) & 0.47 (0.12) \\
+BinPacking & 0.34 (0.23) & 0.69 (0.14) & 0.41 (0.15) \\
+FlowShop & 0.39 (0.20) & 0.59 (0.11) & 0.44 (0.12) \\
+TSP & 0.40 (0.16) & 0.54 (0.12) & 0.63 (0.09) \\
+VRP & 0.21 (0.20) & 0.34 (0.15) & 0.61 (0.11) \\
+PS & 0.36 (0.20) & 0.61 (0.10) & 0.49 (0.13) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+LIME stability is systematically lower than SHAP stability (mean $\tau$ 0.21--0.69
+vs 0.27--0.83). This is expected: LIME produces local linear approximations at
+individual instances, so it is more sensitive to sampling variation than SHAP's
+global TreeExplainer attributions.
+
+\subsection{SHAP vs LIME Agreement}
+
+Both methods identify the same structural patterns:
+
+\begin{enumerate}[nosep]
+  \item \textbf{SP-CF-LA}: Heuristic identity features are the primary drivers in both
+    SHAP (top shares go to \texttt{feat\_last\_h*}) and LIME (top conditions are
+    heuristic-specific ranges).
+  \item \textbf{SP-CF-AILTA}: Search-progress features
+    (\emph{progress}, \emph{improve\_rate\_50}) dominate both SHAP
+    and LIME (progress~$\leq 0.50$, pos.\ frac.\ $=1.0$).
+  \item \textbf{MP-CF}: Population features
+    (\emph{pop\_diversity}, \emph{pop\_target\_rank}) are key in
+    both SHAP and LIME (pos.\ frac.\ ${\approx}\,1.0$).
+\end{enumerate}
+
+LIME adds a complementary insight that SHAP cannot provide: the \emph{direction} and
+\emph{threshold} at which features drive acceptance predictions. SHAP tells us
+\texttt{feat\_progress} is important for SP-CF-AILTA; LIME tells us that
+\texttt{feat\_progress <= 0.50} drives acceptance with weight 0.24--0.26.
+
+\section{Limitations}
+
+\begin{enumerate}
+  \item \textbf{Not comparable to CHeSC}: This study uses iteration budgets,
+    instance~0, and 10 seeds. CHeSC used a normalised 10-minute time limit,
+    competition instances, and 31 runs. The real HyFlex domains are the same, but
+    the experimental protocol differs.
+
+  \item \textbf{Single instance}: All runs use instance~0. Performance on other
+    instances may differ.
+
+  \item \textbf{Friedman test power}: With only 6 domains (blocks), the Friedman test
+    has limited power to detect moderate differences in technique rankings.
+
+  \item \textbf{PersonnelScheduling budget}: The 5{,}000-application budget is set by
+    convergence analysis but is substantially lower than other domains. This domain's
+    results rest on fewer applications.
+
+  \item \textbf{Convergence relative to pilot cap}: BinPacking (94{,}670) and FlowShop
+    (91{,}405) reach 95\% convergence very close to the 100{,}000-iteration pilot cap.
+    The pilot run may itself not have been long enough, so the true budget needed
+    may exceed 100{,}000 and results for these domains may not reflect fully
+    converged search.
+
+  \item \textbf{SP-SR-LA unexplainable}: The Simple Random baseline cannot be
+    explained by SHAP or LIME because its surrogates fail to learn acceptance
+    patterns (ROC-AUC $\approx 0.52$). This is explained by the lagged
+    feature encoding: \texttt{feat\_last\_h*} records the previous iteration's
+    heuristic, which is uninformative under random selection (\S5.1).
+    This limits direct feature-importance comparison to the 3 CF-based
+    techniques.
+
+  \item \textbf{LIME stability}: LIME explanations are less stable than SHAP across
+    seeds (mean $\tau$ 0.21--0.69 vs 0.27--0.83), particularly for SP-CF-LA in VRP
+    ($\tau = 0.21$). Condition-level findings should be interpreted as aggregate
+    trends, not per-seed guarantees.
+
+  \item \textbf{Surrogates model acceptance, not performance}: The XAI analysis
+    explains which features predict whether a candidate is \emph{accepted}, not
+    whether it is \emph{good}. Acceptance is a necessary condition for performance
+    improvement but is not sufficient---a technique can accept many poor moves. The
+    link between acceptance drivers and technique effectiveness is indirect.
+\end{enumerate}
+
+\section{Conclusions}
+
+\begin{enumerate}
+  \item \textbf{Replication works}: 240 runs with 10 seeds per cell provide reliable
+    variance estimates and enable paired statistical tests.
+
+  \item \textbf{SP-CF-AILTA is the strongest single technique}: It significantly
+    outperforms the baseline in 4 of 6 domains, ranks 1st in 3 domains by median,
+    and achieves the best mean rank (2.00) and normalised score (0.30).
+
+  \item \textbf{MP-CF shows complementary strengths}: MP-CF achieves the best median
+    in TSP and VRP (significant only in VRP) and ties for 1st in BinPacking, suggesting that
+    population-based search can help on some problem structures. However, its
+    advantage over the baseline is statistically confirmed only in VRP.
+
+  \item \textbf{The SR/CF explainability gap is a feature-encoding effect}:
+    All 60 SP-SR-LA surrogates are flagged (ROC-AUC $< 0.6$), while the
+    180 CF-based surrogates achieve mean ROC-AUC 0.88--0.91.
+    \texttt{feat\_last\_h*} records the \emph{previous} iteration's heuristic.
+    Under random selection this is independent of the current move, so
+    the surrogate has no signal. Under CF, consecutive choices are
+    correlated (no repeats, $f_2$ pair rewards), making the lagged
+    feature informative about the current acceptance outcome. Actual
+    per-heuristic acceptance rates (grouped by the current
+    \texttt{heuristic\_id}) vary widely (e.g.\ 0.4--100\% in BinPacking),
+    but the surrogate features do not include the current heuristic
+    directly.
+
+  \item \textbf{Each technique type has a distinct explanation signature}: SP-CF-LA is
+    explained by lagged heuristic identity, acting as a proxy for the current
+    heuristic under CF's sequential structure. SP-CF-AILTA is explained by
+    search-progress features, and MP-CF by population-level features. Both
+    SHAP and LIME converge on this finding.
+
+  \item \textbf{AILTA's decaying threshold shifts the surrogate's
+    reliance to progress features}: The surrogate for SP-CF-AILTA
+    consistently ranks \texttt{feat\_progress} and
+    \texttt{feat\_improve\_\allowbreak{}rate\_50} above heuristic
+    identity features. LIME shows the surrogate predicts higher acceptance
+    early in the search, consistent with the linearly decaying threshold.
+    However, early-search permissiveness also appears under SP-CF-LA, so
+    this pattern may partly reflect general search dynamics rather than
+    AILTA specifically.
+
+  \item \textbf{Population diversity predicts acceptance for MP-CF}: The surrogate for
+    MP-CF relies on \texttt{feat\_pop\_diversity} and \texttt{feat\_pop\_target\_rank},
+    consistent with the replacement rule that targets the worst individual. The causal
+    mechanism is not established, but the association is strong in the domains where
+    population features reach the top~3 (SAT, FlowShop, VRP).
+
+  \item \textbf{Cross-domain differences are not significant}: The Friedman test
+    ($p = 0.424$) does not detect an overall technique effect, likely due to the
+    small number of domains.
+\end{enumerate}
+
+\end{document}

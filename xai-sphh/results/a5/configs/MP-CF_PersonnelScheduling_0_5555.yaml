@@ -1,0 +1,9 @@
+techniqueName: MP-CF
+domain: PersonnelScheduling
+instanceIndex: 0
+seed: 5555
+budgetType: iterations
+budgetValue: 5000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  populationSize: 10

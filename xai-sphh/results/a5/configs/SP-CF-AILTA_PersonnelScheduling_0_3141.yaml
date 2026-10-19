@@ -1,0 +1,9 @@
+techniqueName: SP-CF-AILTA
+domain: PersonnelScheduling
+instanceIndex: 0
+seed: 3141
+budgetType: iterations
+budgetValue: 5000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  totalIterations: 5000

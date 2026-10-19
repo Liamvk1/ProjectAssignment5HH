@@ -1,0 +1,9 @@
+techniqueName: SP-SR-LA
+domain: PersonnelScheduling
+instanceIndex: 0
+seed: 9999
+budgetType: iterations
+budgetValue: 5000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  listLength: 50

@@ -1,0 +1,9 @@
+techniqueName: SP-CF-AILTA
+domain: FlowShop
+instanceIndex: 0
+seed: 5555
+budgetType: iterations
+budgetValue: 100000
+outputDirectory: results/a5/traces
+techniqueParameters:
+  totalIterations: 100000
