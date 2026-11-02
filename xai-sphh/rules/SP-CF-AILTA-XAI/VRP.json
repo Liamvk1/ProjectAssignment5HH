@@ -1,0 +1,96 @@
+{
+  "base_technique": "SP-CF-AILTA",
+  "domain": "VRP",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        7,
+        8,
+        9
+      ],
+      "excluded_heuristics": [
+        5,
+        6
+      ]
+    },
+    "late": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        7,
+        8,
+        9
+      ],
+      "excluded_heuristics": [
+        5,
+        6
+      ]
+    },
+    "middle": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        7,
+        8,
+        9
+      ],
+      "excluded_heuristics": [
+        5,
+        6
+      ]
+    }
+  },
+  "rule_b": {
+    "threshold": 779.5,
+    "type": "reheat"
+  },
+  "rule_type": "A",
+  "source": "SP-SR-LA effectiveness map",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "domain_phase_mean_rate": 0.01956,
+      "excluded": [
+        "CROSSOVER"
+      ]
+    },
+    "late": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "domain_phase_mean_rate": 6.7e-05,
+      "excluded": [
+        "CROSSOVER"
+      ]
+    },
+    "middle": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "domain_phase_mean_rate": 0.000165,
+      "excluded": [
+        "CROSSOVER"
+      ]
+    }
+  },
+  "variant": "SP-CF-AILTA-XAI"
+}

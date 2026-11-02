@@ -1,0 +1,105 @@
+{
+  "base_technique": "MP-CF",
+  "domain": "FlowShop",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "excluded_heuristics": []
+    },
+    "late": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "excluded_heuristics": []
+    },
+    "middle": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "excluded_heuristics": []
+    }
+  },
+  "rule_b": {
+    "threshold": 0.07,
+    "type": "diversity"
+  },
+  "rule_type": "A",
+  "source": "SP-SR-LA effectiveness map",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "CROSSOVER",
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "domain_phase_mean_rate": 0.002173,
+      "excluded": []
+    },
+    "late": {
+      "allowed": [
+        "CROSSOVER",
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "domain_phase_mean_rate": 1.7e-05,
+      "excluded": []
+    },
+    "middle": {
+      "allowed": [
+        "CROSSOVER",
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "domain_phase_mean_rate": 0.00014,
+      "excluded": []
+    }
+  },
+  "variant": "MP-CF-XAI"
+}

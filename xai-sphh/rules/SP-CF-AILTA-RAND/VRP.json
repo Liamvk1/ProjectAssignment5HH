@@ -1,0 +1,89 @@
+{
+  "base_technique": "SP-CF-AILTA",
+  "domain": "VRP",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9
+      ],
+      "excluded_heuristics": [
+        0,
+        1,
+        7
+      ]
+    },
+    "late": {
+      "allowed_heuristics": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9
+      ],
+      "excluded_heuristics": [
+        0,
+        1,
+        7
+      ]
+    },
+    "middle": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        7
+      ],
+      "excluded_heuristics": [
+        4,
+        8,
+        9
+      ]
+    }
+  },
+  "rule_type": "RAND",
+  "source": "random mask (same exclusion count as XAI)",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "CROSSOVER",
+        "LOCAL_SEARCH",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "MUTATION"
+      ]
+    },
+    "late": {
+      "allowed": [
+        "CROSSOVER",
+        "LOCAL_SEARCH",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "MUTATION"
+      ]
+    },
+    "middle": {
+      "allowed": [
+        "CROSSOVER",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "LOCAL_SEARCH"
+      ]
+    }
+  },
+  "variant": "SP-CF-AILTA-RAND"
+}

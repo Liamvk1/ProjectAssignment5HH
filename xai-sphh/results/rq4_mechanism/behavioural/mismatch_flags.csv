@@ -1,0 +1,7 @@
+domain,xai_better,significant,behaviour_changed,mismatch_type,a12
+SAT,True,False,False,performance_without_behaviour,0.275
+BinPacking,True,True,False,performance_without_behaviour,0.11
+FlowShop,False,False,False,none,0.61
+TSP,False,False,False,none,0.54
+VRP,False,False,False,none,0.57
+PersonnelScheduling,False,False,False,none,0.88

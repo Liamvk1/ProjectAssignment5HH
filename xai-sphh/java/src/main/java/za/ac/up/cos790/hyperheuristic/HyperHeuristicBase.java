@@ -7,6 +7,7 @@ import za.ac.up.cos790.instrumentation.CsvTraceWriter;
 import za.ac.up.cos790.instrumentation.ScoreVector;
 import za.ac.up.cos790.instrumentation.TraceRecord;
 import za.ac.up.cos790.instrumentation.TraceWriter;
+import za.ac.up.cos790.selection.MaskedSelectionStrategy;
 import za.ac.up.cos790.state.FeatureExtractor;
 import za.ac.up.cos790.state.SearchState;
 
@@ -235,6 +236,7 @@ public abstract class HyperHeuristicBase extends HyperHeuristic {
 
                 // Build the trace record.
                 final Map<String, Double> featureMap = FeatureExtractor.extract(state);
+                appendMaskFeatures(featureMap, selector);
                 final Map<String, Double> scoreMap   = buildScoreMap(scores);
 
                 final TraceRecord record = new TraceRecord(
@@ -301,6 +303,18 @@ public abstract class HyperHeuristicBase extends HyperHeuristic {
             deque.pollLast();
         }
         deque.addFirst(value);
+    }
+
+    /**
+     * Appends mask status features if the selector is a {@link MaskedSelectionStrategy}.
+     * For unmasked selectors, appends 0 / heuristicCount so the column always exists.
+     */
+    public static void appendMaskFeatures(final Map<String, Double> featureMap,
+                                    final SelectionStrategy selector) {
+        if (selector instanceof MaskedSelectionStrategy masked) {
+            featureMap.put("mask_active", masked.wasMaskActive() ? 1.0 : 0.0);
+            featureMap.put("allowed_set_size", (double) masked.lastAllowedSetSize());
+        }
     }
 
     /**

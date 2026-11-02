@@ -3,6 +3,7 @@ package za.ac.up.cos790.hyperheuristic.multipoint;
 import AbstractClasses.HyperHeuristic;
 import AbstractClasses.ProblemDomain;
 import za.ac.up.cos790.experiment.BudgetPolicy;
+import za.ac.up.cos790.hyperheuristic.HyperHeuristicBase;
 import za.ac.up.cos790.hyperheuristic.SelectionStrategy;
 import za.ac.up.cos790.instrumentation.CsvTraceWriter;
 import za.ac.up.cos790.instrumentation.ScoreVector;
@@ -258,6 +259,7 @@ public class MultiPointHyperHeuristic extends HyperHeuristic {
 
                 // Trace record.
                 final Map<String, Double> featureMap = FeatureExtractor.extract(state);
+                HyperHeuristicBase.appendMaskFeatures(featureMap, selector);
                 final Map<String, Double> scoreMap   = buildScoreMap(scores);
 
                 final TraceRecord record = new TraceRecord(

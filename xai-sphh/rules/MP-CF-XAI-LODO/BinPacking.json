@@ -1,0 +1,100 @@
+{
+  "base_technique": "MP-CF",
+  "domain": "BinPacking",
+  "held_out": "BinPacking",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "excluded_heuristics": [
+        7
+      ]
+    },
+    "late": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "excluded_heuristics": []
+    },
+    "middle": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "excluded_heuristics": [
+        7
+      ]
+    }
+  },
+  "rule_type": "A-LODO",
+  "source": "SP-SR-LA effectiveness map (5 domains excl BinPacking)",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER"
+      ],
+      "vote_counts": {
+        "CROSSOVER": 3,
+        "LOCAL_SEARCH": 0,
+        "MUTATION": 1,
+        "RUIN_RECREATE": 2
+      }
+    },
+    "late": {
+      "allowed": [
+        "CROSSOVER",
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [],
+      "vote_counts": {
+        "CROSSOVER": 2,
+        "LOCAL_SEARCH": 0,
+        "MUTATION": 0,
+        "RUIN_RECREATE": 1
+      }
+    },
+    "middle": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER"
+      ],
+      "vote_counts": {
+        "CROSSOVER": 3,
+        "LOCAL_SEARCH": 0,
+        "MUTATION": 1,
+        "RUIN_RECREATE": 2
+      }
+    }
+  },
+  "variant": "MP-CF-XAI-LODO"
+}

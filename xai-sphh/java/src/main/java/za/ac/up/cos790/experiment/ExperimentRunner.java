@@ -14,6 +14,8 @@ import za.ac.up.cos790.hyperheuristic.multipoint.MultiPointHyperHeuristic;
 import za.ac.up.cos790.hyperheuristic.singlepoint.SinglePointHyperHeuristic;
 import za.ac.up.cos790.instrumentation.RunManifest;
 import za.ac.up.cos790.selection.ChoiceFunction;
+import za.ac.up.cos790.selection.MaskedSelectionStrategy;
+import za.ac.up.cos790.selection.SelectionMask;
 import za.ac.up.cos790.selection.SimpleRandom;
 
 import java.io.IOException;
@@ -21,6 +23,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,6 +41,18 @@ import java.util.Map;
  *   <li>{@code MP-CF}       – Multi-point, Choice Function (no acceptance strategy)</li>
  *   <li>{@code MP-SR}       – Multi-point, Simple Random (no acceptance strategy)</li>
  * </ul>
+ *
+ * <p>XAI variants append a mask suffix to the base technique name:
+ * <ul>
+ *   <li>{@code -XAI}      – in-domain XAI selection mask</li>
+ *   <li>{@code -XAI-LODO} – leave-one-domain-out cross-domain mask</li>
+ *   <li>{@code -RAND}     – random control mask (same exclusion count as XAI)</li>
+ *   <li>{@code -STAT}     – statistics-only control mask (no surrogate)</li>
+ * </ul>
+ * For example: {@code SP-CF-AILTA-XAI}, {@code MP-CF-XAI-LODO}.
+ *
+ * <p>XAI variants require the {@code rulesDir} technique parameter pointing to
+ * the directory containing variant subdirectories (e.g. {@code rules/}).
  *
  * <p>Optional {@code techniqueParameters} keys:
  * <ul>
@@ -140,33 +155,73 @@ public final class ExperimentRunner {
     // Hyper-heuristic factory
     // -------------------------------------------------------------------------
 
+    /** Recognised XAI mask suffixes, ordered longest-first so matching is greedy. */
+    private static final List<String> MASK_SUFFIXES = List.of(
+            "-XAI-LODO", "-XAI", "-RAND", "-STAT");
+
     private AbstractClasses.HyperHeuristic buildHyperHeuristic(
             final Path tracePath,
             final BudgetPolicy budget,
             final double initialObjective,
-            final long totalIterations) {
+            final long totalIterations) throws IOException {
 
         final Map<String, String> params = config.techniqueParameters();
         final long seed = config.seed();
         final String technique = config.techniqueName();
 
-        // Parse the technique name: [SP|MP]-[CF|SR][-acceptance]
-        final String[] parts = technique.split("-", 3);
+        // Strip any XAI mask suffix to find the base technique name.
+        String baseTechnique = technique;
+        String maskSuffix = "";
+        for (final String suffix : MASK_SUFFIXES) {
+            if (technique.endsWith(suffix)) {
+                baseTechnique = technique.substring(0, technique.length() - suffix.length());
+                maskSuffix = suffix.substring(1); // remove leading '-'
+                break;
+            }
+        }
+
+        // Parse the base technique name: [SP|MP]-[CF|SR][-acceptance]
+        final String[] parts = baseTechnique.split("-", 3);
         if (parts.length < 2) {
             throw new IllegalArgumentException(
                     "Invalid technique name '" + technique
-                    + "'. Expected format: [SP|MP]-[CF|SR][-acceptance].");
+                    + "'. Expected format: [SP|MP]-[CF|SR][-acceptance][-maskSuffix].");
         }
         final String mode      = parts[0].toUpperCase();
         final String selection = parts[1].toUpperCase();
         final String acceptance = (parts.length >= 3) ? parts[2].toUpperCase() : "";
 
-        final SelectionStrategy selector = switch (selection) {
+        SelectionStrategy selector = switch (selection) {
             case "CF" -> new ChoiceFunction(seed);
             case "SR" -> new SimpleRandom(seed);
             default   -> throw new IllegalArgumentException(
                     "Unknown selection component '" + selection + "' in '" + technique + "'.");
         };
+
+        // If an XAI mask suffix was detected, load the rules file and wrap the selector.
+        if (!maskSuffix.isEmpty()) {
+            final String rulesDir = params.get("rulesDir");
+            if (rulesDir == null || rulesDir.isBlank()) {
+                throw new IllegalArgumentException(
+                        "Technique '" + technique + "' requires a 'rulesDir' parameter "
+                        + "pointing to the rules directory (e.g. 'rules/').");
+            }
+            // Variant directory name matches the full technique name.
+            final Path rulesFile = Path.of(rulesDir, technique, config.domain() + ".json");
+            if (!Files.exists(rulesFile)) {
+                throw new IllegalArgumentException(
+                        "Rules file not found: " + rulesFile
+                        + ". Run extract_rules.py first.");
+            }
+            // heuristicCount is not available yet (domain not loaded), but the
+            // JSON file contains the full allowed list, so we pass 0 as fallback
+            // (only used if JSON parsing fails, which would be a bug).
+            final SelectionMask mask = SelectionMask.fromJson(rulesFile, 0);
+            selector = new MaskedSelectionStrategy(selector, mask, seed);
+
+            System.err.println("[INFO] Loaded selection mask from " + rulesFile
+                    + " for technique " + technique);
+        }
 
         if ("MP".equals(mode)) {
             final int popSize = parseInt(params, "populationSize",

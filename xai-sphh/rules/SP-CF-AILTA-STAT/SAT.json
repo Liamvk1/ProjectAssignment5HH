@@ -1,0 +1,90 @@
+{
+  "base_technique": "SP-CF-AILTA",
+  "domain": "SAT",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8
+      ],
+      "excluded_heuristics": [
+        6,
+        9,
+        10
+      ]
+    },
+    "late": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "excluded_heuristics": []
+    },
+    "middle": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8
+      ],
+      "excluded_heuristics": [
+        6,
+        9,
+        10
+      ]
+    }
+  },
+  "rule_type": "STAT",
+  "source": "descriptive statistics only (no surrogate, no SHAP)",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "RUIN_RECREATE"
+      ]
+    },
+    "late": {
+      "allowed": [
+        "CROSSOVER",
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": []
+    },
+    "middle": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "RUIN_RECREATE"
+      ]
+    }
+  },
+  "variant": "SP-CF-AILTA-STAT"
+}

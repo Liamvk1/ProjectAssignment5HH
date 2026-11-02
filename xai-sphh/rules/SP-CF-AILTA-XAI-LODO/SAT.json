@@ -1,0 +1,111 @@
+{
+  "base_technique": "SP-CF-AILTA",
+  "domain": "SAT",
+  "held_out": "SAT",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "excluded_heuristics": [
+        9,
+        10
+      ]
+    },
+    "late": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "excluded_heuristics": [
+        9,
+        10
+      ]
+    },
+    "middle": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "excluded_heuristics": [
+        9,
+        10
+      ]
+    }
+  },
+  "rule_type": "A-LODO",
+  "source": "SP-SR-LA effectiveness map (5 domains excl SAT)",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER"
+      ],
+      "vote_counts": {
+        "CROSSOVER": 3,
+        "LOCAL_SEARCH": 0,
+        "MUTATION": 2,
+        "RUIN_RECREATE": 1
+      }
+    },
+    "late": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER"
+      ],
+      "vote_counts": {
+        "CROSSOVER": 3,
+        "LOCAL_SEARCH": 0,
+        "MUTATION": 1,
+        "RUIN_RECREATE": 1
+      }
+    },
+    "middle": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER"
+      ],
+      "vote_counts": {
+        "CROSSOVER": 3,
+        "LOCAL_SEARCH": 0,
+        "MUTATION": 2,
+        "RUIN_RECREATE": 1
+      }
+    }
+  },
+  "variant": "SP-CF-AILTA-XAI-LODO"
+}

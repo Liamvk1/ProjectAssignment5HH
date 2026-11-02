@@ -1,0 +1,83 @@
+{
+  "base_technique": "SP-CF-AILTA",
+  "domain": "BinPacking",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "excluded_heuristics": [
+        0,
+        3,
+        5,
+        7
+      ]
+    },
+    "late": {
+      "allowed_heuristics": [
+        4,
+        6,
+        7
+      ],
+      "excluded_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ]
+    },
+    "middle": {
+      "allowed_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "excluded_heuristics": [
+        4,
+        6,
+        7
+      ]
+    }
+  },
+  "rule_type": "RAND",
+  "source": "random mask (same exclusion count as XAI)",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "MUTATION"
+      ]
+    },
+    "late": {
+      "allowed": [
+        "CROSSOVER",
+        "LOCAL_SEARCH"
+      ],
+      "excluded": [
+        "MUTATION",
+        "RUIN_RECREATE"
+      ]
+    },
+    "middle": {
+      "allowed": [
+        "MUTATION",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "LOCAL_SEARCH"
+      ]
+    }
+  },
+  "variant": "SP-CF-AILTA-RAND"
+}

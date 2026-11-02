@@ -1,0 +1,104 @@
+{
+  "base_technique": "MP-CF",
+  "domain": "FlowShop",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "excluded_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    "late": {
+      "allowed_heuristics": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "excluded_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    "middle": {
+      "allowed_heuristics": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "excluded_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        11,
+        12,
+        13,
+        14
+      ]
+    }
+  },
+  "rule_type": "STAT",
+  "source": "descriptive statistics only (no surrogate, no SHAP)",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "MUTATION"
+      ]
+    },
+    "late": {
+      "allowed": [
+        "LOCAL_SEARCH"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ]
+    },
+    "middle": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "MUTATION"
+      ]
+    }
+  },
+  "variant": "MP-CF-STAT"
+}

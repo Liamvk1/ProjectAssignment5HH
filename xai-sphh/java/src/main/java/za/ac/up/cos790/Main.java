@@ -18,19 +18,35 @@ public final class Main {
     private Main() {}
 
     /**
-     * Parses the config path from {@code args[0]} and hands off to {@link ExperimentRunner}.
+     * Runs one or more experiments from YAML config files.
      *
-     * @param args command-line arguments; {@code args[0]} must be the config file path
+     * @param args one or more config file paths
      */
     public static void main(final String[] args) throws Exception {
-        if (args.length != 1) {
-            System.err.println("Usage: xai-sphh <path-to-config.yaml>");
+        if (args.length < 1) {
+            System.err.println("Usage: xai-sphh <config.yaml> [config2.yaml ...]");
             System.exit(1);
         }
 
-        final Path configPath = Path.of(args[0]);
-        final RunConfig config = ConfigLoader.load(configPath);
-        final ExperimentRunner runner = new ExperimentRunner(config);
-        runner.run();
+        final int total = args.length;
+        int completed = 0;
+        int failed = 0;
+
+        for (final String arg : args) {
+            final Path configPath = Path.of(arg);
+            try {
+                final RunConfig config = ConfigLoader.load(configPath);
+                final ExperimentRunner runner = new ExperimentRunner(config);
+                runner.run();
+                completed++;
+                System.err.printf("[%d/%d] OK: %s%n", completed + failed, total, arg);
+            } catch (final Exception e) {
+                failed++;
+                System.err.printf("[%d/%d] FAILED: %s — %s%n",
+                        completed + failed, total, arg, e.getMessage());
+            }
+        }
+        System.err.printf("Done: %d completed, %d failed out of %d%n",
+                completed, failed, total);
     }
 }

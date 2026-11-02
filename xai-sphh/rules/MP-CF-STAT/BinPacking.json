@@ -1,0 +1,83 @@
+{
+  "base_technique": "MP-CF",
+  "domain": "BinPacking",
+  "heuristic_rules": {
+    "early": {
+      "allowed_heuristics": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "excluded_heuristics": [
+        0,
+        3,
+        5,
+        7
+      ]
+    },
+    "late": {
+      "allowed_heuristics": [
+        4,
+        6
+      ],
+      "excluded_heuristics": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7
+      ]
+    },
+    "middle": {
+      "allowed_heuristics": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "excluded_heuristics": [
+        0,
+        3,
+        5,
+        7
+      ]
+    }
+  },
+  "rule_type": "STAT",
+  "source": "descriptive statistics only (no surrogate, no SHAP)",
+  "type_class_rules": {
+    "early": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "MUTATION"
+      ]
+    },
+    "late": {
+      "allowed": [
+        "LOCAL_SEARCH"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "MUTATION",
+        "RUIN_RECREATE"
+      ]
+    },
+    "middle": {
+      "allowed": [
+        "LOCAL_SEARCH",
+        "RUIN_RECREATE"
+      ],
+      "excluded": [
+        "CROSSOVER",
+        "MUTATION"
+      ]
+    }
+  },
+  "variant": "MP-CF-STAT"
+}
